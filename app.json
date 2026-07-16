@@ -3,10 +3,10 @@
     "pages/index/index"
   ],
   "window": {
-    "navigationBarTitleText": "麻将计分器",
-    "navigationBarBackgroundColor": "#1f6f50",
+    "navigationBarTitleText": "捉鸡记账本",
+    "navigationBarBackgroundColor": "#070705",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f4f6f3"
+    "backgroundColor": "#070705"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"
