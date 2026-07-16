@@ -1,0 +1,63 @@
+<view class="page">
+  <view class="score-panel">
+    <view class="center-score">
+      <text class="center-label">我的分数</text>
+      <text class="center-value">{{myScore}}</text>
+    </view>
+
+    <block wx:for="{{players}}" wx:key="key">
+      <view class="player-card {{item.key}}">
+        <view wx:if="{{!item.isMe}}" class="player-score">{{item.score}}</view>
+
+        <button
+          wx:if="{{item.isMe}}"
+          class="avatar-circle avatar-picker"
+          open-type="chooseAvatar"
+          bindchooseavatar="onChooseAvatar"
+          aria-label="选择我的微信头像"
+        >
+          <image wx:if="{{item.avatar}}" class="avatar-image" src="{{item.avatar}}" mode="aspectFill" />
+          <text wx:else class="avatar-text">{{item.direction}}</text>
+        </button>
+
+        <view wx:else class="avatar-circle avatar-placeholder">
+          <text class="avatar-text">{{item.direction}}</text>
+        </view>
+
+        <input
+          wx:if="{{!item.isMe}}"
+          class="score-input"
+          type="digit"
+          value="{{item.input}}"
+          data-key="{{item.key}}"
+          bindinput="onScoreInput"
+          placeholder="+/-分"
+          placeholder-class="input-placeholder"
+          confirm-type="done"
+        />
+
+      </view>
+    </block>
+
+    <view class="submit-button" bindtap="submitScores">提交</view>
+  </view>
+
+  <view class="history-panel">
+    <view class="history-title">
+      <text>计分历史</text>
+      <text class="round-tip">下一局：第{{round}}局</text>
+    </view>
+
+    <view wx:if="{{history.length === 0}}" class="empty-history">
+      暂无记录，输入分数后点击提交开始计分
+    </view>
+
+    <scroll-view wx:else class="history-list" scroll-y>
+      <view wx:for="{{history}}" wx:key="id" class="history-item">
+        {{item.text}}
+      </view>
+    </scroll-view>
+
+    <button class="reset-button" bindtap="resetScores">重新开局</button>
+  </view>
+</view>

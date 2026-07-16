@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "麻将计分器",
+    "navigationBarBackgroundColor": "#1f6f50",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f4f6f3"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
