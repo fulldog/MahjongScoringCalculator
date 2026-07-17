@@ -17,8 +17,14 @@
     </view>
 
     <block wx:for="{{players}}" wx:key="key">
-      <view class="player-card {{item.key}}">
-        <view wx:if="{{!item.isMe}}" class="player-score">{{item.score}}</view>
+      <view
+        class="player-card {{item.key}} {{draggingKey === item.key ? 'dragging' : ''}} {{dragTargetKey === item.key ? 'drop-target' : ''}}"
+        style="{{draggingKey === item.key ? dragStyle : ''}}"
+      >
+        <view
+          wx:if="{{!item.isMe}}"
+          class="player-score"
+        >{{item.score}}</view>
 
         <button
           wx:if="{{item.isMe}}"
@@ -31,14 +37,23 @@
           <text wx:else class="avatar-text">{{item.direction}}</text>
         </button>
 
-        <view wx:else class="avatar-circle avatar-placeholder">
-          <text class="avatar-text">{{item.direction}}</text>
+        <view
+          wx:else
+          class="avatar-circle avatar-placeholder"
+          data-key="{{item.key}}"
+          bindtouchstart="onSeatTouchStart"
+          bindtap="onSeatTap"
+          catchtouchmove="onSeatDragMove"
+          bindtouchend="onSeatDragEnd"
+          bindtouchcancel="onSeatDragCancel"
+        >
+          <text class="avatar-text">{{item.displayName}}</text>
         </view>
 
         <input
           wx:if="{{!item.isMe}}"
           class="score-input"
-          type="digit"
+          type="text"
           value="{{item.input}}"
           data-key="{{item.key}}"
           bindinput="onScoreInput"
@@ -55,12 +70,12 @@
 
   <view class="history-panel">
     <view class="history-title">
-      <text>计分历史</text>
+      <text>记账历史</text>
       <text class="round-tip">下一局：第{{round}}局</text>
     </view>
 
     <view wx:if="{{history.length === 0}}" class="empty-history">
-      暂无记录，输入分数后点击提交开始计分
+      暂无记录，输入分数后点击提交开始记账
     </view>
 
     <scroll-view wx:else class="history-list" scroll-y>
@@ -69,6 +84,9 @@
       </view>
     </scroll-view>
 
-    <button class="reset-button" bindtap="resetScores">重新开局</button>
+    <view class="history-actions">
+      <button class="reset-button" bindtap="resetScores">重新开局</button>
+      <button wx:if="{{history.length > 0}}" class="undo-button" bindtap="undoLastRound">撤回上一局</button>
+    </view>
   </view>
 </view>
