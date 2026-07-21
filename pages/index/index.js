@@ -207,6 +207,8 @@ Page({
     const centerValue = Math.round(font * 2.1)
     const nameRest = Math.round(Math.max(9, font * 0.7))
     const submitW = Math.round(btnH * 2.2)
+    const orientW = Math.round(btnH * 2)
+    const helpLeft = inset + orientW + 8
     const scoreWBadge = Math.round(card * 0.8)
     const inputW = Math.round(card * 0.88)
     const cardH = scoreBadgeH + 3 + avatar + 3 + inputH
@@ -231,6 +233,8 @@ Page({
       `--ls-font-sm:${nameRest}px`,
       `--ls-inset:${inset}px`,
       `--ls-btn-h:${btnH}px`,
+      `--ls-orient-w:${orientW}px`,
+      `--ls-help-left:${helpLeft}px`,
       `--ls-submit-w:${submitW}px`,
       `--ls-radius:${radius}px`,
       `--ls-radius-n:-${radius}px`
@@ -375,6 +379,28 @@ Page({
   },
 
   preventHelpModalClose() {},
+
+  toggleOrientation() {
+    if (typeof wx.setPageOrientation !== 'function') {
+      wx.showToast({
+        title: '当前版本不支持切换',
+        icon: 'none'
+      })
+      return
+    }
+
+    const orientation = this.data.isLandscape ? 'portrait' : 'landscape'
+
+    wx.setPageOrientation({
+      orientation,
+      fail: () => {
+        wx.showToast({
+          title: '切换失败，请手动旋转',
+          icon: 'none'
+        })
+      }
+    })
+  },
 
   onSeatTouchStart(event) {
     const { key } = event.currentTarget.dataset

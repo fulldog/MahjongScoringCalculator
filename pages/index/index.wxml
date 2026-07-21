@@ -114,6 +114,9 @@
           </view>
         </block>
 
+        <view class="orientation-button" bindtap="toggleOrientation" aria-label="切换横竖屏">
+          {{isLandscape ? '竖屏' : '横屏'}}
+        </view>
         <view class="help-button" bindtap="openHelpModal" aria-label="使用说明">?</view>
         <view class="submit-button" bindtap="submitScores">提交</view>
       </view>

@@ -368,6 +368,30 @@
   color: rgba(236, 213, 168, 0.45);
 }
 
+.orientation-button {
+  position: absolute;
+  left: 42rpx;
+  top: 54rpx;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 72rpx;
+  height: 52rpx;
+  padding: 0 16rpx;
+  border-radius: 26rpx;
+  background: linear-gradient(180deg, #3f3320 0%, #22180d 100%);
+  border: 1rpx solid rgba(214, 166, 88, 0.72);
+  color: #efd7a4;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow:
+    0 0 18rpx rgba(211, 143, 52, 0.18),
+    inset 0 0 12rpx rgba(255, 229, 157, 0.12);
+}
+
 .help-button {
   position: absolute;
   right: 42rpx;
@@ -813,9 +837,20 @@
   border-radius: 6px;
 }
 
-.page.is-landscape .help-button {
+.page.is-landscape .orientation-button {
   top: var(--ls-inset, 18px);
   left: var(--ls-inset, 18px);
+  right: auto;
+  min-width: var(--ls-orient-w, 60px);
+  height: var(--ls-btn-h, 30px);
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: var(--ls-font-sm, 12px);
+}
+
+.page.is-landscape .help-button {
+  top: var(--ls-inset, 18px);
+  left: var(--ls-help-left, 86px);
   right: auto;
   width: var(--ls-btn-h, 30px);
   height: var(--ls-btn-h, 30px);
