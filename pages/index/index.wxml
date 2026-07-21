@@ -1,5 +1,5 @@
-<view class="page">
-  <view class="hero">
+<view class="page {{isLandscape ? 'is-landscape' : 'is-portrait'}}" style="{{boardStyle}}">
+  <view wx:if="{{!isLandscape}}" class="hero">
     <view class="hero-logo">黔</view>
     <view class="hero-title">捉鸡记账本</view>
     <view class="hero-divider">
@@ -10,87 +10,128 @@
     <view class="hero-subtitle">轻量记账小工具</view>
   </view>
 
-  <view class="score-panel">
-    <view class="center-score">
-      <text class="center-label">我的分数</text>
-      <text class="center-value {{myScoreTone}}">{{myScore}}</text>
-    </view>
+  <view class="main-board">
+    <view class="history-panel">
+      <view class="history-title">
+        <text>记账历史</text>
+        <text class="round-tip">下一局：第{{round}}局</text>
+      </view>
 
-    <block wx:for="{{players}}" wx:key="key">
-      <view
-        class="player-card {{item.key}} {{draggingKey === item.key ? 'dragging' : ''}} {{dragTargetKey === item.key ? 'drop-target' : ''}}"
-        style="{{draggingKey === item.key ? dragStyle : ''}}"
-      >
-        <view
-          wx:if="{{!item.isMe}}"
-          class="player-score {{item.scoreTone}}"
-        >{{item.score}}</view>
-
-        <input
-          wx:if="{{item.isMe}}"
-          class="score-input score-input-me {{item.inputTone}}"
-          type="text"
-          value="{{item.input}}"
-          data-key="{{item.key}}"
-          bindinput="onScoreInput"
-          placeholder="+/-分"
-          placeholder-class="input-placeholder"
-          confirm-type="done"
-        />
-
-        <button
-          wx:if="{{item.isMe}}"
-          class="avatar-circle avatar-picker"
-          open-type="chooseAvatar"
-          bindchooseavatar="onChooseAvatar"
-          aria-label="选择我的微信头像"
-        >
-          <image wx:if="{{item.avatar}}" class="avatar-image" src="{{item.avatar}}" mode="aspectFill" />
-          <text wx:else class="avatar-text">{{item.direction}}</text>
-        </button>
-
-        <view
-          wx:else
-          class="avatar-circle avatar-placeholder"
-          data-key="{{item.key}}"
-          bindtouchstart="onSeatTouchStart"
-          bindtap="onSeatTap"
-          catchtouchmove="onSeatDragMove"
-          bindtouchend="onSeatDragEnd"
-          bindtouchcancel="onSeatDragCancel"
-        >
-          <view class="avatar-name">
-            <text class="avatar-name-first">{{item.displayFirst}}</text>
-            <text wx:if="{{item.displayRest}}" class="avatar-name-rest">{{item.displayRest}}</text>
-          </view>
+      <view class="history-body">
+        <view wx:if="{{history.length === 0}}" class="empty-history">
+          暂无记录，输入分数后点击提交开始记账
         </view>
 
-        <input
-          wx:if="{{!item.isMe}}"
-          class="score-input {{item.inputTone}}"
-          type="text"
-          value="{{item.input}}"
-          data-key="{{item.key}}"
-          bindinput="onScoreInput"
-          placeholder="+/-分"
-          placeholder-class="input-placeholder"
-          confirm-type="done"
-        />
-
+        <scroll-view wx:else class="history-list" scroll-y show-scrollbar>
+          <view wx:for="{{history}}" wx:key="id" class="history-item">
+            <block wx:if="{{item.parts}}">
+              <text
+                wx:for="{{item.parts}}"
+                wx:for-item="part"
+                wx:for-index="partIndex"
+                wx:key="partIndex"
+                class="history-text {{part.tone}}"
+              >{{part.text}}</text>
+            </block>
+            <text wx:else class="history-text">{{item.text}}</text>
+          </view>
+        </scroll-view>
       </view>
-    </block>
 
-    <view class="help-button" bindtap="openHelpModal" aria-label="使用说明">?</view>
-    <view class="submit-button" bindtap="submitScores">提交</view>
+      <view class="history-actions">
+        <button class="reset-button" bindtap="resetScores">重新开局</button>
+        <button wx:if="{{history.length > 0}}" class="undo-button" bindtap="undoLastRound">撤回上一局</button>
+      </view>
+    </view>
+
+    <view class="score-stage">
+      <view class="score-panel">
+        <view class="center-score">
+          <text class="center-label">我的分数</text>
+          <text class="center-value {{myScoreTone}}">{{myScore}}</text>
+        </view>
+
+        <block wx:for="{{players}}" wx:key="key">
+          <view
+            class="player-card {{item.key}} {{draggingKey === item.key ? 'dragging' : ''}} {{dragTargetKey === item.key ? 'drop-target' : ''}}"
+            style="{{draggingKey === item.key ? dragStyle : ''}}"
+          >
+            <view
+              wx:if="{{!item.isMe}}"
+              class="player-score {{item.scoreTone}}"
+            >{{item.score}}</view>
+
+            <input
+              wx:if="{{item.isMe}}"
+              class="score-input score-input-me {{item.inputTone}}"
+              type="text"
+              value="{{item.input}}"
+              data-key="{{item.key}}"
+              bindinput="onScoreInput"
+              placeholder="+/-分"
+              placeholder-class="input-placeholder"
+              confirm-type="done"
+            />
+
+            <button
+              wx:if="{{item.isMe}}"
+              class="avatar-circle avatar-picker"
+              open-type="chooseAvatar"
+              bindchooseavatar="onChooseAvatar"
+              aria-label="选择我的微信头像"
+            >
+              <image wx:if="{{item.avatar}}" class="avatar-image" src="{{item.avatar}}" mode="aspectFill" />
+              <text wx:else class="avatar-text">{{item.displayFirst || item.name || '我'}}</text>
+            </button>
+
+            <view
+              wx:else
+              class="avatar-circle avatar-placeholder"
+              data-key="{{item.key}}"
+              bindtouchstart="onSeatTouchStart"
+              bindtap="onSeatTap"
+              catchtouchmove="onSeatDragMove"
+              bindtouchend="onSeatDragEnd"
+              bindtouchcancel="onSeatDragCancel"
+            >
+              <view class="avatar-name">
+                <text class="avatar-name-first">{{item.displayFirst}}</text>
+                <text wx:if="{{item.displayRest}}" class="avatar-name-rest">{{item.displayRest}}</text>
+              </view>
+            </view>
+
+            <input
+              wx:if="{{!item.isMe}}"
+              class="score-input {{item.inputTone}}"
+              type="text"
+              value="{{item.input}}"
+              data-key="{{item.key}}"
+              bindinput="onScoreInput"
+              placeholder="+/-分"
+              placeholder-class="input-placeholder"
+              confirm-type="done"
+            />
+          </view>
+        </block>
+
+        <view class="help-button" bindtap="openHelpModal" aria-label="使用说明">?</view>
+        <view class="submit-button" bindtap="submitScores">提交</view>
+      </view>
+    </view>
   </view>
 
-  <view wx:if="{{showHelpModal}}" class="help-mask" bindtap="closeHelpModal" catchtouchmove="preventHelpModalClose">
+  <view
+    wx:if="{{showHelpModal}}"
+    class="help-mask"
+    bindtap="closeHelpModal"
+    catchtouchmove="preventHelpModalClose"
+  >
     <view class="help-modal" catchtap="preventHelpModalClose">
       <view class="help-modal-header">
         <text class="help-modal-title">使用说明</text>
         <view class="help-close" bindtap="closeHelpModal">×</view>
       </view>
-      <view class="help-modal-body">
+      <scroll-view class="help-modal-body" scroll-y show-scrollbar>
         <view class="help-item">1、“我”的位置永远是南方。</view>
         <view class="help-item">2、点击方位自定义文案。</view>
         <view class="help-item">3、长按方位3s可拖动交换位置。</view>
@@ -98,39 +139,8 @@
         <view class="help-item">5、如果输入错误，请点击“撤回上一局”。</view>
         <view class="help-item">6、对局结束重开，请使用“重新开局”。</view>
         <view class="help-item">7、反馈建议：weilone9527@qq.com。</view>
-      </view>
+      </scroll-view>
       <view class="help-modal-footer" bindtap="closeHelpModal">知道了</view>
-    </view>
-  </view>
-
-  <view class="history-panel">
-    <view class="history-title">
-      <text>记账历史</text>
-      <text class="round-tip">下一局：第{{round}}局</text>
-    </view>
-
-    <view wx:if="{{history.length === 0}}" class="empty-history">
-      暂无记录，输入分数后点击提交开始记账
-    </view>
-
-    <scroll-view wx:else class="history-list" scroll-y>
-      <view wx:for="{{history}}" wx:key="id" class="history-item">
-        <block wx:if="{{item.parts}}">
-          <text
-            wx:for="{{item.parts}}"
-            wx:for-item="part"
-            wx:for-index="partIndex"
-            wx:key="partIndex"
-            class="history-text {{part.tone}}"
-          >{{part.text}}</text>
-        </block>
-        <text wx:else class="history-text">{{item.text}}</text>
-      </view>
-    </scroll-view>
-
-    <view class="history-actions">
-      <button class="reset-button" bindtap="resetScores">重新开局</button>
-      <button wx:if="{{history.length > 0}}" class="undo-button" bindtap="undoLastRound">撤回上一局</button>
     </view>
   </view>
 </view>

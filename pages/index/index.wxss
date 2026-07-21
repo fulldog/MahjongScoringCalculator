@@ -10,6 +10,21 @@
   color: #ead7ae;
 }
 
+.main-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.page.is-portrait .score-stage {
+  order: 1;
+}
+
+.page.is-portrait .history-panel {
+  order: 2;
+}
+
 .hero {
   display: flex;
   flex-direction: column;
@@ -413,6 +428,9 @@
 .help-modal {
   width: 100%;
   max-width: 640rpx;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
   border-radius: 24rpx;
   background:
     linear-gradient(180deg, rgba(28, 24, 16, 0.98), rgba(12, 11, 8, 0.98));
@@ -421,10 +439,12 @@
     0 24rpx 48rpx rgba(0, 0, 0, 0.5),
     inset 0 0 0 1rpx rgba(255, 232, 169, 0.06);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .help-modal-header {
   position: relative;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -455,7 +475,12 @@
 }
 
 .help-modal-body {
+  flex: 1;
+  height: 0;
+  min-height: 120rpx;
+  max-height: 48vh;
   padding: 28rpx 36rpx 16rpx;
+  box-sizing: border-box;
 }
 
 .help-item {
@@ -470,6 +495,7 @@
 }
 
 .help-modal-footer {
+  flex-shrink: 0;
   margin: 20rpx 36rpx 32rpx;
   height: 72rpx;
   display: flex;
@@ -491,16 +517,21 @@
   flex: 1;
   min-height: 0;
   margin: 22rpx 0 0;
-  padding: 30rpx 28rpx 118rpx;
+  padding: 30rpx 28rpx;
   border-radius: 24rpx;
   background: rgba(12, 12, 9, 0.96);
   border: 1rpx solid rgba(199, 154, 87, 0.42);
   box-shadow:
     0 18rpx 36rpx rgba(0, 0, 0, 0.36),
     inset 0 0 0 1rpx rgba(255, 232, 169, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .history-title {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -515,8 +546,20 @@
   font-weight: 400;
 }
 
+.history-body {
+  flex: 1;
+  min-height: 0;
+  margin-top: 22rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .empty-history {
-  margin-top: 96rpx;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: rgba(232, 211, 171, 0.48);
   font-size: 28rpx;
   line-height: 42rpx;
@@ -524,9 +567,10 @@
 }
 
 .history-list {
-  height: calc(43vh - 190rpx);
-  margin-top: 22rpx;
-  padding-bottom: 8rpx;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .history-item {
@@ -551,10 +595,8 @@
 }
 
 .history-actions {
-  position: absolute;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: 30rpx;
+  flex-shrink: 0;
+  margin-top: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -594,4 +636,282 @@
 .undo-button::after,
 .reset-button::after {
   border: 0;
+}
+
+/* ========== Landscape layout ========== */
+.page.is-landscape {
+  height: var(--ls-page-h, 100vh);
+  max-height: var(--ls-page-h, 100vh);
+  overflow: hidden;
+  padding: var(--ls-pad-top, 6px) var(--ls-pad-right, 6px) var(--ls-pad-bottom, 6px)
+    var(--ls-pad-left, 6px);
+  box-sizing: border-box;
+}
+
+.page.is-portrait {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.page.is-landscape .avatar-picker {
+  position: relative;
+  z-index: 20;
+}
+
+.page.is-landscape .main-board {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.page.is-landscape .history-panel {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: var(--ls-square, 300px);
+  min-height: var(--ls-square, 300px);
+  max-height: var(--ls-square, 300px);
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.page.is-landscape .score-stage {
+  flex: none;
+  width: var(--ls-square, 300px);
+  height: var(--ls-square, 300px);
+  min-width: var(--ls-square, 300px);
+  min-height: var(--ls-square, 300px);
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+
+.page.is-landscape .score-panel {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 14px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(232, 206, 151, 0.18) 0,
+      rgba(232, 206, 151, 0.1) 36%,
+      rgba(5, 5, 4, 0) 38%
+    ),
+    linear-gradient(180deg, rgba(21, 20, 15, 0.96), rgba(8, 9, 7, 0.98));
+}
+
+.page.is-landscape .score-panel::after {
+  inset: 8px;
+  border-radius: 10px;
+}
+
+.page.is-landscape .center-score {
+  width: var(--ls-center, 72px);
+  height: var(--ls-center, 72px);
+  border-width: 2px;
+  box-shadow:
+    0 0 12px rgba(174, 112, 45, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.32),
+    inset 0 0 12px rgba(213, 155, 80, 0.14);
+}
+
+.page.is-landscape .center-label {
+  font-size: var(--ls-font-sm, 11px);
+}
+
+.page.is-landscape .center-value {
+  margin-top: 2px;
+  font-size: var(--ls-font-lg, 28px);
+}
+
+.page.is-landscape .player-card {
+  width: var(--ls-card, 72px);
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+}
+
+.page.is-landscape .north {
+  transform: translate(-50%, -50%) translateY(var(--ls-radius-n, -90px));
+}
+
+.page.is-landscape .south {
+  transform: translate(-50%, -50%) translateY(var(--ls-radius, 90px));
+}
+
+.page.is-landscape .west {
+  transform: translate(-50%, -50%) translateX(var(--ls-radius-n, -90px));
+}
+
+.page.is-landscape .east {
+  transform: translate(-50%, -50%) translateX(var(--ls-radius, 90px));
+}
+
+.page.is-landscape .player-card.dragging {
+  transform: none;
+}
+
+.page.is-landscape .player-score {
+  width: var(--ls-score-w-badge, 56px);
+  height: var(--ls-score-h, 20px);
+  padding: 0 4px;
+  font-size: var(--ls-font, 14px);
+  line-height: var(--ls-score-h, 20px);
+}
+
+.page.is-landscape .avatar-circle,
+.page.is-landscape .avatar-picker {
+  width: var(--ls-avatar, 44px);
+  min-width: var(--ls-avatar, 44px);
+  max-width: var(--ls-avatar, 44px);
+  height: var(--ls-avatar, 44px);
+  min-height: var(--ls-avatar, 44px);
+  max-height: var(--ls-avatar, 44px);
+  flex: 0 0 var(--ls-avatar, 44px);
+  margin-top: 3px;
+  border-radius: 10px;
+  border-width: 1px;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.28),
+    inset 0 0 8px rgba(255, 229, 157, 0.12);
+}
+
+.page.is-landscape .avatar-text,
+.page.is-landscape .avatar-name-first {
+  font-size: var(--ls-font, 14px);
+}
+
+.page.is-landscape .avatar-name {
+  padding: 2px;
+}
+
+.page.is-landscape .avatar-name-rest {
+  margin-top: 1px;
+  font-size: var(--ls-font-sm, 10px);
+}
+
+.page.is-landscape .score-input {
+  width: var(--ls-input-w, 62px);
+  height: var(--ls-input-h, 22px);
+  margin-top: 3px;
+  padding: 0 4px;
+  font-size: var(--ls-font-sm, 11px);
+  border-radius: 6px;
+}
+
+.page.is-landscape .help-button {
+  top: var(--ls-inset, 18px);
+  left: var(--ls-inset, 18px);
+  right: auto;
+  width: var(--ls-btn-h, 30px);
+  height: var(--ls-btn-h, 30px);
+  font-size: var(--ls-font, 14px);
+}
+
+.page.is-landscape .submit-button {
+  right: var(--ls-inset, 18px);
+  bottom: var(--ls-inset, 18px);
+  width: var(--ls-submit-w, 66px);
+  height: var(--ls-btn-h, 30px);
+  font-size: var(--ls-font-sm, 12px);
+  border-radius: 8px;
+}
+
+.page.is-landscape .history-title {
+  font-size: 15px;
+}
+
+.page.is-landscape .round-tip {
+  font-size: 11px;
+}
+
+.page.is-landscape .history-body {
+  margin-top: 8px;
+}
+
+.page.is-landscape .history-item {
+  margin-bottom: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.page.is-landscape .history-actions {
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.page.is-landscape .undo-button,
+.page.is-landscape .reset-button {
+  height: 34px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.page.is-landscape .empty-history {
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0 8px;
+}
+
+.page.is-landscape .help-mask {
+  padding: 12px 24px;
+}
+
+.page.is-landscape .help-modal {
+  width: min(560px, 72vw);
+  max-width: 72vw;
+  max-height: 86vh;
+  border-radius: 14px;
+}
+
+.page.is-landscape .help-modal-header {
+  padding: 12px 40px 10px;
+}
+
+.page.is-landscape .help-modal-title {
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-indent: 2px;
+}
+
+.page.is-landscape .help-close {
+  right: 8px;
+  top: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+}
+
+.page.is-landscape .help-modal-body {
+  max-height: none;
+  padding: 10px 16px 6px;
+}
+
+.page.is-landscape .help-item {
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.page.is-landscape .help-modal-footer {
+  margin: 8px 16px 12px;
+  height: 36px;
+  font-size: 13px;
+  border-radius: 8px;
 }

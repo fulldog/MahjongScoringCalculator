@@ -3,5 +3,6 @@
   "navigationBarBackgroundColor": "#070705",
   "navigationBarTextStyle": "white",
   "backgroundColor": "#070705",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "pageOrientation": "auto"
 }

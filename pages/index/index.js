@@ -4,7 +4,7 @@ const initialPlayers = [
   { id: 'north', key: 'north', direction: '北', name: '北', displayName: '北', label: '上北', score: 0, input: '', avatar: '', isMe: false },
   { id: 'west', key: 'west', direction: '西', name: '西', displayName: '西', label: '左西', score: 0, input: '', avatar: '', isMe: false },
   { id: 'east', key: 'east', direction: '东', name: '东', displayName: '东', label: '右东', score: 0, input: '', avatar: '', isMe: false },
-  { id: 'south', key: 'south', direction: '南', name: '南', displayName: '南', label: '下南', score: 0, input: '', avatar: '', isMe: true }
+  { id: 'south', key: 'south', direction: '南', name: '我', displayName: '我', label: '下南', score: 0, input: '', avatar: '', isMe: true }
 ]
 
 const SWAPPABLE_SEATS = ['north', 'west', 'east']
@@ -25,7 +25,12 @@ function getDisplayParts(name) {
 
 function normalizePlayers(players) {
   return players.map((player) => {
-    const name = player.name || player.direction
+    let name = player.name || player.direction
+
+    if (player.isMe && (!name || name === '南')) {
+      name = '我'
+    }
+
     const displayParts = getDisplayParts(name)
     const score = normalizeNumber(player.score)
 
@@ -109,11 +114,127 @@ Page({
     draggingKey: '',
     dragStyle: '',
     dragTargetKey: '',
-    showHelpModal: false
+    showHelpModal: false,
+    isLandscape: false,
+    boardStyle: ''
   },
 
   onLoad() {
     this.restoreState()
+    this.syncOrientation()
+  },
+
+  onShow() {
+    this.syncOrientation()
+  },
+
+  onResize(res) {
+    const size = res && res.size
+    const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+
+    if (size && size.windowWidth && size.windowHeight) {
+      this.applyOrientation(size.windowWidth, size.windowHeight, info)
+      return
+    }
+
+    this.applyOrientation(info.windowWidth, info.windowHeight, info)
+  },
+
+  syncOrientation() {
+    const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+    this.applyOrientation(info.windowWidth, info.windowHeight, info)
+  },
+
+  applyOrientation(width, height, info) {
+    if (!width || !height) {
+      return
+    }
+
+    const windowInfo = info || (wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync())
+    const isLandscape = width > height
+    const boardStyle = isLandscape ? this.buildLandscapeStyle(width, height, windowInfo) : ''
+
+    if (isLandscape === this.data.isLandscape && boardStyle === this.data.boardStyle) {
+      return
+    }
+
+    this.clearLongPressTimer()
+    this.dragState = null
+
+    this.setData({
+      isLandscape,
+      boardStyle,
+      draggingKey: '',
+      dragStyle: '',
+      dragTargetKey: ''
+    })
+  },
+
+  buildLandscapeStyle(width, height, info = {}) {
+    const insets = info.safeAreaInsets || {}
+    let padTop = Math.max(0, Number(insets.top) || 0)
+    let padRight = Math.max(0, Number(insets.right) || 0)
+    let padBottom = Math.max(0, Number(insets.bottom) || 0)
+    let padLeft = Math.max(0, Number(insets.left) || 0)
+
+    if (padTop + padBottom > height * 0.3) {
+      padTop = 0
+      padBottom = 0
+    }
+
+    if (padLeft + padRight > width * 0.3) {
+      padLeft = 0
+      padRight = 0
+    }
+
+    padTop += 6
+    padRight += 6
+    padBottom += 6
+    padLeft += 6
+
+    const gap = 8
+    const contentW = Math.max(240, width - padLeft - padRight)
+    const contentH = Math.max(160, height - padTop - padBottom)
+    const square = Math.round(Math.min(contentH, contentW * 0.58))
+    const avatar = Math.round(Math.max(34, Math.min(52, square * 0.13)))
+    const center = Math.round(Math.max(60, Math.min(96, square * 0.24)))
+    const card = Math.round(Math.max(52, avatar * 1.55))
+    const inputH = Math.round(Math.max(20, avatar * 0.42))
+    const scoreBadgeH = Math.round(Math.max(18, avatar * 0.38))
+    const font = Math.round(Math.max(12, avatar * 0.38))
+    const inset = Math.round(Math.max(20, square * 0.05))
+    const btnH = Math.round(Math.max(28, avatar * 0.58))
+    const centerValue = Math.round(font * 2.1)
+    const nameRest = Math.round(Math.max(9, font * 0.7))
+    const submitW = Math.round(btnH * 2.2)
+    const scoreWBadge = Math.round(card * 0.8)
+    const inputW = Math.round(card * 0.88)
+    const cardH = scoreBadgeH + 3 + avatar + 3 + inputH
+    const radius = Math.round(Math.max(square * 0.3, (square - cardH) / 2 - inset))
+
+    return [
+      `--ls-page-h:${height}px`,
+      `--ls-pad-top:${padTop}px`,
+      `--ls-pad-right:${padRight}px`,
+      `--ls-pad-bottom:${padBottom}px`,
+      `--ls-pad-left:${padLeft}px`,
+      `--ls-square:${square}px`,
+      `--ls-avatar:${avatar}px`,
+      `--ls-center:${center}px`,
+      `--ls-card:${card}px`,
+      `--ls-input-h:${inputH}px`,
+      `--ls-input-w:${inputW}px`,
+      `--ls-score-h:${scoreBadgeH}px`,
+      `--ls-score-w-badge:${scoreWBadge}px`,
+      `--ls-font:${font}px`,
+      `--ls-font-lg:${centerValue}px`,
+      `--ls-font-sm:${nameRest}px`,
+      `--ls-inset:${inset}px`,
+      `--ls-btn-h:${btnH}px`,
+      `--ls-submit-w:${submitW}px`,
+      `--ls-radius:${radius}px`,
+      `--ls-radius-n:-${radius}px`
+    ].join(';')
   },
 
   restoreState() {
