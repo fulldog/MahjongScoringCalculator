@@ -13,19 +13,30 @@ function cloneInitialPlayers() {
   return normalizePlayers(initialPlayers)
 }
 
-function getDisplayName(name) {
-  return name ? Array.from(name)[0] : ''
+function getDisplayParts(name) {
+  const chars = Array.from(name || '')
+
+  return {
+    displayName: chars.join(''),
+    displayFirst: chars[0] || '',
+    displayRest: chars.slice(1).join('')
+  }
 }
 
 function normalizePlayers(players) {
   return players.map((player) => {
     const name = player.name || player.direction
+    const displayParts = getDisplayParts(name)
+    const score = normalizeNumber(player.score)
 
     return {
       ...player,
       id: player.id || player.direction || player.key,
       name,
-      displayName: getDisplayName(name)
+      score,
+      scoreTone: numberTone(score),
+      inputTone: getInputTone(player.input),
+      ...displayParts
     }
   })
 }
@@ -43,6 +54,50 @@ function isValidScoreInput(value) {
   return /^-?\d+$/.test(String(value).trim())
 }
 
+function numberTone(value) {
+  if (value > 0) {
+    return 'num-pos'
+  }
+
+  if (value < 0) {
+    return 'num-neg'
+  }
+
+  return ''
+}
+
+function getInputTone(input) {
+  const trimmed = String(input || '').trim()
+
+  if (!trimmed || !isValidScoreInput(trimmed)) {
+    return ''
+  }
+
+  return numberTone(Number(trimmed))
+}
+
+function appendHistoryNumber(parts, value) {
+  parts.push({
+    text: value < 0 ? `(${value})` : String(value),
+    tone: numberTone(value)
+  })
+}
+
+function buildSeatHistoryParts(name, score, seatDelta, myDelta, nextScore) {
+  const parts = [{ text: `${name}(`, tone: '' }]
+
+  appendHistoryNumber(parts, myDelta)
+  parts.push({ text: ' - ', tone: '' })
+  appendHistoryNumber(parts, seatDelta)
+  parts.push({ text: ' + ', tone: '' })
+  appendHistoryNumber(parts, score)
+  parts.push({ text: ' = ', tone: '' })
+  appendHistoryNumber(parts, nextScore)
+  parts.push({ text: ')', tone: '' })
+
+  return parts
+}
+
 Page({
   data: {
     players: cloneInitialPlayers(),
@@ -50,9 +105,11 @@ Page({
     history: [],
     totalScore: 0,
     myScore: 0,
+    myScoreTone: '',
     draggingKey: '',
     dragStyle: '',
-    dragTargetKey: ''
+    dragTargetKey: '',
+    showHelpModal: false
   },
 
   onLoad() {
@@ -67,13 +124,15 @@ Page({
     }
 
     const players = normalizePlayers(savedState.players || cloneInitialPlayers())
+    const myScore = this.getMyScore(players)
 
     this.setData({
       players,
       round: savedState.round || 1,
       history: savedState.history || [],
       totalScore: savedState.totalScore || 0,
-      myScore: this.getMyScore(players)
+      myScore,
+      myScoreTone: numberTone(myScore)
     })
   },
 
@@ -99,7 +158,8 @@ Page({
 
       return {
         ...player,
-        input: value
+        input: value,
+        inputTone: getInputTone(value)
       }
     })
 
@@ -175,7 +235,7 @@ Page({
           return {
             ...item,
             name,
-            displayName: getDisplayName(name)
+            ...getDisplayParts(name)
           }
         })
 
@@ -184,6 +244,16 @@ Page({
       }
     })
   },
+
+  openHelpModal() {
+    this.setData({ showHelpModal: true })
+  },
+
+  closeHelpModal() {
+    this.setData({ showHelpModal: false })
+  },
+
+  preventHelpModalClose() {},
 
   onSeatTouchStart(event) {
     const { key } = event.currentTarget.dataset
@@ -425,7 +495,7 @@ Page({
   getMyScore(players = this.data.players) {
     return players.reduce((score, player) => {
       if (player.isMe) {
-        return score + player.score
+        return score
       }
 
       return score + player.score
@@ -438,7 +508,7 @@ Page({
     const changes = []
     const invalidPlayer = this.data.players.find((player) => {
       const input = String(player.input || '').trim()
-      return !player.isMe && input !== '' && !isValidScoreInput(input)
+      return input !== '' && !isValidScoreInput(input)
     })
 
     if (invalidPlayer) {
@@ -450,46 +520,74 @@ Page({
     }
 
     const hasAnyInput = this.data.players.some((player) => {
-      return !player.isMe && String(player.input || '').trim() !== ''
+      return String(player.input || '').trim() !== ''
     })
+    const me = this.data.players.find((player) => player.isMe)
+    const myDelta = normalizeNumber(me && me.input)
 
     const players = this.data.players.map((player) => {
-      const delta = normalizeNumber(player.input)
-      const nextScore = player.score + delta
-
-      if (!player.isMe && hasAnyInput) {
-        roundChanges.push(
-          `${player.name || player.direction}(${player.score}${delta >= 0 ? '+' : ''}${delta}=${nextScore})`
-        )
-        changes.push({
-          id: player.id,
-          delta
-        })
-      }
-
-      if (delta === 0) {
+      if (player.isMe) {
         return {
           ...player,
-          input: ''
+          input: '',
+          inputTone: ''
         }
+      }
+
+      const seatDelta = normalizeNumber(player.input)
+      const nextScore = myDelta - seatDelta + player.score
+
+      if (hasAnyInput) {
+        const parts = buildSeatHistoryParts(
+          player.name || player.direction,
+          player.score,
+          seatDelta,
+          myDelta,
+          nextScore
+        )
+        roundChanges.push({
+          parts,
+          text: parts.map((part) => part.text).join('')
+        })
+        changes.push({
+          id: player.id,
+          delta: myDelta - seatDelta
+        })
       }
 
       return {
         ...player,
         score: nextScore,
-        input: ''
+        scoreTone: numberTone(nextScore),
+        input: '',
+        inputTone: ''
       }
     })
 
     const totalScore = players.reduce((sum, player) => sum + player.score, 0)
     const myScore = this.getMyScore(players)
+    const historyParts = [{ text: `第${currentRound}局：`, tone: '' }]
     const historyText = roundChanges.length
-      ? `第${currentRound}局：${roundChanges.join('  ')}`
+      ? `第${currentRound}局：${roundChanges.map((item) => item.text).join('  ')}`
       : `第${currentRound}局：本局无分数变化`
+
+    if (roundChanges.length) {
+      roundChanges.forEach((item, index) => {
+        if (index > 0) {
+          historyParts.push({ text: '  ', tone: '' })
+        }
+
+        historyParts.push(...item.parts)
+      })
+    } else {
+      historyParts.push({ text: '本局无分数变化', tone: '' })
+    }
+
     const history = [
       {
         id: `${currentRound}-${Date.now()}`,
         text: historyText,
+        parts: historyParts,
         changes
       },
       ...this.data.history
@@ -501,7 +599,8 @@ Page({
       history,
       round,
       totalScore,
-      myScore
+      myScore,
+      myScoreTone: numberTone(myScore)
     })
     this.persistState({ players, history, round, totalScore })
   },
@@ -538,10 +637,14 @@ Page({
             return player
           }
 
+          const score = player.score - change.delta
+
           return {
             ...player,
-            score: player.score - change.delta,
-            input: ''
+            score,
+            scoreTone: numberTone(score),
+            input: '',
+            inputTone: ''
           }
         })
         const history = this.data.history.slice(1)
@@ -554,7 +657,8 @@ Page({
           history,
           round,
           totalScore,
-          myScore
+          myScore,
+          myScoreTone: numberTone(myScore)
         })
         this.persistState({ players, history, round, totalScore })
       }
@@ -578,7 +682,8 @@ Page({
           round: 1,
           history: [],
           totalScore: 0,
-          myScore: 0
+          myScore: 0,
+          myScoreTone: ''
         }
 
         this.setData(nextState)
