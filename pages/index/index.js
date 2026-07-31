@@ -41,6 +41,7 @@ function normalizePlayers(players) {
       score,
       scoreTone: numberTone(score),
       inputTone: getInputTone(player.input),
+      ...getScoreInputParts(player.input),
       ...displayParts
     }
   })
@@ -57,6 +58,45 @@ function normalizeNumber(value) {
 
 function isValidScoreInput(value) {
   return /^-?\d+$/.test(String(value).trim())
+}
+
+function getScoreInputParts(input) {
+  const raw = String(input || '').trim()
+  const inputTone = getInputTone(raw)
+
+  if (raw.startsWith('-')) {
+    return {
+      inputSign: '-',
+      inputDigits: raw.slice(1).replace(/\D/g, ''),
+      signClass: `is-neg ${inputTone}`.trim()
+    }
+  }
+
+  return {
+    inputSign: '+',
+    inputDigits: raw.replace(/\D/g, ''),
+    signClass: inputTone
+  }
+}
+
+function composeScoreInput(sign, digits) {
+  const cleaned = String(digits || '').replace(/\D/g, '')
+
+  if (!cleaned) {
+    return sign === '-' ? '-' : ''
+  }
+
+  return sign === '-' ? `-${cleaned}` : cleaned
+}
+
+function clearedScoreInput() {
+  return {
+    input: '',
+    inputTone: '',
+    inputSign: '+',
+    inputDigits: '',
+    signClass: ''
+  }
 }
 
 function numberTone(value) {
@@ -198,8 +238,9 @@ Page({
     const square = Math.round(Math.min(contentH, contentW * 0.58))
     const avatar = Math.round(Math.max(34, Math.min(52, square * 0.13)))
     const center = Math.round(Math.max(60, Math.min(96, square * 0.24)))
-    const card = Math.round(Math.max(52, avatar * 1.55))
-    const inputH = Math.round(Math.max(20, avatar * 0.42))
+    const card = Math.round(Math.max(56, avatar * 1.6))
+    const inputH = Math.round(Math.max(22, avatar * 0.46))
+    const sign = Math.round(Math.max(20, Math.min(26, inputH)))
     const scoreBadgeH = Math.round(Math.max(18, avatar * 0.38))
     const font = Math.round(Math.max(12, avatar * 0.38))
     const inset = Math.round(Math.max(20, square * 0.05))
@@ -210,7 +251,7 @@ Page({
     const orientW = Math.round(btnH * 2)
     const helpLeft = inset + orientW + 8
     const scoreWBadge = Math.round(card * 0.8)
-    const inputW = Math.round(card * 0.88)
+    const inputW = Math.round(card * 0.92)
     const cardH = scoreBadgeH + 3 + avatar + 3 + inputH
     const radius = Math.round(Math.max(square * 0.3, (square - cardH) / 2 - inset))
 
@@ -226,6 +267,7 @@ Page({
       `--ls-card:${card}px`,
       `--ls-input-h:${inputH}px`,
       `--ls-input-w:${inputW}px`,
+      `--ls-sign:${sign}px`,
       `--ls-score-h:${scoreBadgeH}px`,
       `--ls-score-w-badge:${scoreWBadge}px`,
       `--ls-font:${font}px`,
@@ -275,16 +317,40 @@ Page({
 
   onScoreInput(event) {
     const { key } = event.currentTarget.dataset
-    const value = event.detail.value
+    const digits = String(event.detail.value || '').replace(/\D/g, '')
     const players = this.data.players.map((player) => {
       if (player.key !== key) {
         return player
       }
 
+      const value = composeScoreInput(player.inputSign || '+', digits)
+
       return {
         ...player,
         input: value,
-        inputTone: getInputTone(value)
+        inputTone: getInputTone(value),
+        ...getScoreInputParts(value)
+      }
+    })
+
+    this.setData({ players })
+  },
+
+  onToggleScoreSign(event) {
+    const { key } = event.currentTarget.dataset
+    const players = this.data.players.map((player) => {
+      if (player.key !== key) {
+        return player
+      }
+
+      const nextSign = player.inputSign === '-' ? '+' : '-'
+      const value = composeScoreInput(nextSign, player.inputDigits)
+
+      return {
+        ...player,
+        input: value,
+        inputTone: getInputTone(value),
+        ...getScoreInputParts(value)
       }
     })
 
@@ -655,7 +721,7 @@ Page({
     const changes = []
     const invalidPlayer = this.data.players.find((player) => {
       const input = String(player.input || '').trim()
-      return input !== '' && !isValidScoreInput(input)
+      return input !== '' && input !== '-' && !isValidScoreInput(input)
     })
 
     if (invalidPlayer) {
@@ -667,7 +733,8 @@ Page({
     }
 
     const hasAnyInput = this.data.players.some((player) => {
-      return String(player.input || '').trim() !== ''
+      const input = String(player.input || '').trim()
+      return input !== '' && input !== '-'
     })
     const me = this.data.players.find((player) => player.isMe)
     const myDelta = normalizeNumber(me && me.input)
@@ -676,13 +743,13 @@ Page({
       if (player.isMe) {
         return {
           ...player,
-          input: '',
-          inputTone: ''
+          ...clearedScoreInput()
         }
       }
 
       const seatDelta = normalizeNumber(player.input)
-      const nextScore = myDelta - seatDelta + player.score
+      const roundDelta = myDelta - seatDelta
+      const nextScore = player.score + roundDelta
 
       if (hasAnyInput) {
         const parts = buildSeatHistoryParts(
@@ -698,7 +765,7 @@ Page({
         })
         changes.push({
           id: player.id,
-          delta: myDelta - seatDelta
+          delta: roundDelta
         })
       }
 
@@ -706,8 +773,7 @@ Page({
         ...player,
         score: nextScore,
         scoreTone: numberTone(nextScore),
-        input: '',
-        inputTone: ''
+        ...clearedScoreInput()
       }
     })
 
@@ -790,8 +856,7 @@ Page({
             ...player,
             score,
             scoreTone: numberTone(score),
-            input: '',
-            inputTone: ''
+            ...clearedScoreInput()
           }
         })
         const history = this.data.history.slice(1)

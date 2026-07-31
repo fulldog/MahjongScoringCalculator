@@ -61,17 +61,24 @@
               class="player-score {{item.scoreTone}}"
             >{{item.score}}</view>
 
-            <input
-              wx:if="{{item.isMe}}"
-              class="score-input score-input-me {{item.inputTone}}"
-              type="text"
-              value="{{item.input}}"
-              data-key="{{item.key}}"
-              bindinput="onScoreInput"
-              placeholder="+/-分"
-              placeholder-class="input-placeholder"
-              confirm-type="done"
-            />
+            <view wx:if="{{item.isMe}}" class="score-input-row score-input-me {{item.inputTone}}">
+              <view
+                class="score-sign {{item.signClass}}"
+                data-key="{{item.key}}"
+                catchtap="onToggleScoreSign"
+                aria-label="切换正负号"
+              >{{item.inputSign}}</view>
+              <input
+                class="score-input-field"
+                type="number"
+                value="{{item.inputDigits}}"
+                data-key="{{item.key}}"
+                bindinput="onScoreInput"
+                placeholder="分"
+                placeholder-class="input-placeholder"
+                confirm-type="done"
+              />
+            </view>
 
             <button
               wx:if="{{item.isMe}}"
@@ -100,17 +107,24 @@
               </view>
             </view>
 
-            <input
-              wx:if="{{!item.isMe}}"
-              class="score-input {{item.inputTone}}"
-              type="text"
-              value="{{item.input}}"
-              data-key="{{item.key}}"
-              bindinput="onScoreInput"
-              placeholder="+/-分"
-              placeholder-class="input-placeholder"
-              confirm-type="done"
-            />
+            <view wx:if="{{!item.isMe}}" class="score-input-row {{item.inputTone}}">
+              <view
+                class="score-sign {{item.signClass}}"
+                data-key="{{item.key}}"
+                catchtap="onToggleScoreSign"
+                aria-label="切换正负号"
+              >{{item.inputSign}}</view>
+              <input
+                class="score-input-field"
+                type="number"
+                value="{{item.inputDigits}}"
+                data-key="{{item.key}}"
+                bindinput="onScoreInput"
+                placeholder="分"
+                placeholder-class="input-placeholder"
+                confirm-type="done"
+              />
+            </view>
           </view>
         </block>
 
@@ -138,7 +152,7 @@
         <view class="help-item">1、“我”的位置永远是南方。</view>
         <view class="help-item">2、点击方位自定义文案。</view>
         <view class="help-item">3、长按方位3s可拖动交换位置。</view>
-        <view class="help-item">4、输入分数后，点击提交自动计算。</view>
+        <view class="help-item">4、输入分数后，点击提交自动计算；点左侧 +/- 可切换正负。</view>
         <view class="help-item">5、如果输入错误，请点击“撤回上一局”。</view>
         <view class="help-item">6、对局结束重开，请使用“重新开局”。</view>
         <view class="help-item">7、反馈建议：weilone9527@qq.com。</view>

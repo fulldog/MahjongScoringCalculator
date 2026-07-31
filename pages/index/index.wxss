@@ -190,7 +190,7 @@
 }
 
 .player-card.dragging .player-score,
-.player-card.dragging .score-input {
+.player-card.dragging .score-input-row {
   border-color: rgba(255, 217, 132, 0.82);
   box-shadow: 0 0 18rpx rgba(218, 157, 65, 0.26);
 }
@@ -208,7 +208,7 @@
 }
 
 .player-card.drop-target .player-score,
-.player-card.drop-target .score-input {
+.player-card.drop-target .score-input-row {
   border-color: rgba(255, 217, 132, 0.9);
   background: rgba(44, 31, 16, 0.96);
   box-shadow: 0 0 20rpx rgba(218, 157, 65, 0.28);
@@ -285,6 +285,74 @@
   margin-bottom: 0;
 }
 
+.score-input-row {
+  box-sizing: border-box;
+  width: 140rpx;
+  height: 48rpx;
+  margin-top: 10rpx;
+  display: flex;
+  align-items: stretch;
+  border-radius: 12rpx;
+  background: rgba(6, 6, 5, 0.9);
+  border: 1rpx solid rgba(197, 151, 82, 0.56);
+  overflow: visible;
+}
+
+.score-sign {
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 48rpx;
+  width: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0d297;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1;
+  border-right: 1rpx solid rgba(197, 151, 82, 0.35);
+  background: rgba(36, 26, 12, 0.55);
+}
+
+/* Expand tap target without enlarging the visible control */
+.score-sign::before {
+  content: '';
+  position: absolute;
+  top: -12rpx;
+  bottom: -12rpx;
+  left: -10rpx;
+  right: -6rpx;
+}
+
+.score-sign.is-neg,
+.score-sign.num-neg {
+  color: #ef5b5b;
+}
+
+.score-sign.num-pos {
+  color: #3dcc7a;
+}
+
+.score-input-field {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10rpx;
+  background: transparent;
+  border: 0;
+  color: #f0d297;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.score-input-row.num-pos .score-input-field {
+  color: #3dcc7a;
+}
+
+.score-input-row.num-neg .score-input-field {
+  color: #ef5b5b;
+}
+
 .avatar-placeholder {
   background:
     radial-gradient(circle at 34% 22%, #d8a75e, #a86129 50%, #321a0d 100%);
@@ -347,20 +415,6 @@
   line-height: 1;
   overflow: hidden;
   white-space: nowrap;
-  text-align: center;
-}
-
-.score-input {
-  box-sizing: border-box;
-  width: 126rpx;
-  height: 46rpx;
-  margin-top: 10rpx;
-  padding: 0 14rpx;
-  border-radius: 12rpx;
-  background: rgba(6, 6, 5, 0.9);
-  border: 1rpx solid rgba(197, 151, 82, 0.56);
-  color: #f0d297;
-  font-size: 24rpx;
   text-align: center;
 }
 
@@ -828,13 +882,29 @@
   font-size: var(--ls-font-sm, 10px);
 }
 
-.page.is-landscape .score-input {
-  width: var(--ls-input-w, 62px);
-  height: var(--ls-input-h, 22px);
+.page.is-landscape .score-input-row {
+  width: var(--ls-input-w, 66px);
+  height: var(--ls-input-h, 24px);
   margin-top: 3px;
-  padding: 0 4px;
-  font-size: var(--ls-font-sm, 11px);
   border-radius: 6px;
+}
+
+.page.is-landscape .score-sign {
+  flex: 0 0 var(--ls-sign, 22px);
+  width: var(--ls-sign, 22px);
+  font-size: var(--ls-font-sm, 12px);
+}
+
+.page.is-landscape .score-sign::before {
+  top: -6px;
+  bottom: -6px;
+  left: -4px;
+  right: -2px;
+}
+
+.page.is-landscape .score-input-field {
+  padding: 0 3px;
+  font-size: var(--ls-font-sm, 11px);
 }
 
 .page.is-landscape .orientation-button {
