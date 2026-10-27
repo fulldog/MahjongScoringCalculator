@@ -1,0 +1,105 @@
+<view class="cutrope-page">
+  <view class="top-nav" style="padding-top: {{navPadTop}}px; padding-right: {{menuRightPad}}px;">
+    <view class="nav-left">
+      <view class="nav-back-pill" bindtap="goBack">‹ 首页</view>
+      <view class="stage-tag">{{boxTitle}} · 第{{levelNum}}/25关</view>
+    </view>
+    <view class="nav-right">
+      <view class="stars-hud">
+        <text class="star {{collected >= 1 ? 'on' : ''}}">★</text>
+        <text class="star {{collected >= 2 ? 'on' : ''}}">★</text>
+        <text class="star {{collected >= 3 ? 'on' : ''}}">★</text>
+      </view>
+      <view class="nav-icon-btn" bindtap="toggleMute">{{muted ? '🔇' : '🔊'}}</view>
+      <view class="nav-icon-btn" bindtap="togglePause">{{mode === 'paused' ? '▶' : '⏸'}}</view>
+    </view>
+  </view>
+
+  <view class="board-area">
+    <view class="board-frame">
+      <canvas
+        type="2d"
+        id="cutropeCanvas"
+        class="cutrope-canvas"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchCancel"
+      ></canvas>
+
+      <view wx:if="{{showOverlay}}" class="overlay" catchtouchmove="preventMove">
+        <view class="overlay-card">
+          <text class="tiny-label">{{overlayTag}}</text>
+          <view class="overlay-title">{{overlayTitle}}</view>
+          <view class="overlay-text">{{overlayText}}</view>
+          <view wx:if="{{mode === 'won'}}" class="result-stars">{{resultStars}}</view>
+          <view class="primary-btn" bindtap="onPrimary">{{primaryLabel}}</view>
+          <view wx:if="{{showSecondary}}" class="text-btn" bindtap="onSecondary">再玩一次</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="action-btn" bindtap="restartLevel">
+      <text class="btn-icon">↺</text>
+      <text class="btn-txt">重玩</text>
+    </view>
+    <view class="action-btn" bindtap="openLevels">
+      <text class="btn-icon">▦</text>
+      <text class="btn-txt">选关</text>
+    </view>
+    <view class="progress-chip">★ {{totalStars}} / 150</view>
+    <view class="action-btn" bindtap="openHelp">
+      <text class="btn-icon">?</text>
+      <text class="btn-txt">说明</text>
+    </view>
+  </view>
+
+  <!-- 关卡选择 -->
+  <view wx:if="{{showLevelsModal}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card levels-card">
+      <view class="modal-head">
+        <view>
+          <text class="tiny-label">CHOOSE YOUR NEXT TREAT</text>
+          <view class="modal-title">拆开下一份快乐</view>
+        </view>
+        <view class="nav-icon-btn" bindtap="closeLevels">×</view>
+      </view>
+      <view class="dialog-tabs">
+        <view class="tab {{dialogBox === 1 ? 'active' : ''}}" data-box="1" bindtap="selectBox">纸盒时光</view>
+        <view class="tab {{dialogBox === 2 ? 'active' : ''}}" data-box="2" bindtap="selectBox">布盒奇遇</view>
+      </view>
+      <scroll-view scroll-y class="level-grid-scroll">
+        <view class="level-grid">
+          <view
+            wx:for="{{levelGrid}}"
+            wx:key="index"
+            class="level-cell {{item.current ? 'current' : ''}}"
+            data-index="{{item.index}}"
+            bindtap="pickLevel"
+          >
+            <text class="level-num">{{item.label}}</text>
+            <text class="level-stars {{item.stars ? 'has' : ''}}">{{item.starsText}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="dialog-note">50 个经典关卡 · 星星会保存在本地</view>
+    </view>
+  </view>
+
+  <!-- 玩法说明 -->
+  <view wx:if="{{showHelpModal}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <view class="modal-title">怎么玩</view>
+      <view class="help-body">
+        <view>1. 按住并划过绳子，切断绳索</view>
+        <view>2. 收集最多 3 颗星星</view>
+        <view>3. 把糖果送到 Om Nom 嘴边</view>
+        <view>4. 点气泡可戳破，点气垫可吹动糖果</view>
+        <view>5. 远离尖刺，蜘蛛爬到前要及时切绳</view>
+      </view>
+      <view class="m-btn primary" bindtap="closeHelp">知道了</view>
+    </view>
+  </view>
+</view>

@@ -1,4 +1,5 @@
 <view class="page {{isLandscape ? 'is-landscape' : 'is-portrait'}}" style="{{boardStyle}}">
+  <view wx:if="{{canGoBack && !isLandscape}}" class="back-home" bindtap="goHome">返回</view>
   <view wx:if="{{!isLandscape}}" class="hero">
     <view class="hero-logo">黔</view>
     <view class="hero-title">麻将记账本plus</view>
@@ -13,7 +14,10 @@
   <view class="main-board">
     <view class="history-panel">
       <view class="history-title">
-        <text>记账历史</text>
+        <view class="history-title-main">
+          <text wx:if="{{canGoBack && isLandscape}}" class="back-link" bindtap="goHome">返回</text>
+          <text>记账历史</text>
+        </view>
         <text class="round-tip">下一局：第{{round}}局</text>
       </view>
 

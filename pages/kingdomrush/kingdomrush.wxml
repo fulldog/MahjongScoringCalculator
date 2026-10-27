@@ -1,0 +1,187 @@
+<view class="kr-page {{showHelp || showPause || showResult || showCampaign ? 'kr-modal-open' : ''}}">
+  <view class="battle-card" style="width: {{cardW}}px;">
+    <view class="hud">
+      <view class="mission">
+        <text class="mission-no">{{missionNo}}</text>
+        <view class="mission-copy">
+          <text class="biome">{{biome}}</text>
+          <text class="mission-name">{{missionName}}</text>
+        </view>
+      </view>
+      <view class="resources">
+        <text class="res life">♥ {{lives}}</text>
+        <text class="res gold">$ {{gold}}</text>
+        <text class="res wave">⚑ {{waveText}}</text>
+      </view>
+    </view>
+
+    <view class="canvas-box" style="height: {{boardH}}px;">
+      <canvas
+        wx:if="{{!showHelp && !showPause && !showResult && !showCampaign}}"
+        type="2d"
+        id="krCanvas"
+        class="kr-canvas"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchEnd"
+      ></canvas>
+      <view class="map-caption">
+        <text>{{mapStatus}}</text>
+        <text>FRONTIERS</text>
+      </view>
+      <view wx:if="{{mode}}" class="target-hint">
+        <text>{{modeHint}}</text>
+        <text class="hint-cancel" bindtap="cancelMode">取消</text>
+      </view>
+      <view wx:if="{{showIntro}}" class="intro" catchtouchmove="preventMove">
+        <view class="intro-card">
+          <text class="eyebrow">FOR THE KINGDOM</text>
+          <view class="intro-title">前线，需要一位指挥官。</view>
+          <view class="intro-text">建造防御塔，集结英雄与援军。守住道路，抵御即将来临的敌人。</view>
+          <view class="primary-btn" bindtap="onStart">开始守卫 →</view>
+          <text class="intro-note">点空地建塔 · 随时可以暂停</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="dock">
+      <view class="hero-btn {{mode === 'hero' ? 'on' : ''}}" bindtap="onHero">
+        <image class="avatar" src="{{heroArt}}" mode="aspectFill"></image>
+        <view class="dock-copy">
+          <text class="strong">艾尔利克</text>
+          <text class="sub">{{heroStatus}}</text>
+        </view>
+      </view>
+      <view class="skill {{mode === 'fire' ? 'on' : ''}} {{fireReady ? '' : 'off'}}" bindtap="onFire">
+        <text class="skill-name">火雨</text>
+        <text class="skill-sub">{{fireLabel}}</text>
+      </view>
+      <view class="skill {{mode === 'reinforce' ? 'on' : ''}} {{reinforceReady ? '' : 'off'}}" bindtap="onReinforce">
+        <text class="skill-name">援军</text>
+        <text class="skill-sub">{{reinforceLabel}}</text>
+      </view>
+      <view class="mini" bindtap="onSpeed">{{speedLabel}}</view>
+      <view class="mini" bindtap="onPause">{{status === 'paused' ? '▶' : 'Ⅱ'}}</view>
+    </view>
+  </view>
+
+  <view class="wave-row" style="width: {{cardW}}px;">
+    <text class="tip">{{tip}}</text>
+    <view class="wave-btn {{waveDisabled ? 'off' : ''}}" bindtap="onWave">{{waveLabel}}</view>
+  </view>
+
+  <view class="sheet" style="width: {{cardW}}px;">
+    <view class="sheet-head">
+      <view>
+        <text class="eyebrow">COMMAND POST</text>
+        <view class="sheet-title">{{sheetTitle}}</view>
+      </view>
+      <view class="map-chip" bindtap="openCampaign">战役地图</view>
+    </view>
+    <text class="sheet-desc">{{sheetDesc}}</text>
+
+    <view wx:if="{{sheetMode !== 'tower'}}" class="tower-grid">
+      <view
+        wx:for="{{towerCards}}"
+        wx:key="type"
+        class="tower-card {{item.disabled ? 'off' : ''}}"
+        data-type="{{item.type}}"
+        bindtap="onBuild"
+      >
+        <image class="tower-art" src="{{item.art}}" mode="aspectFit"></image>
+        <text class="tower-name">{{item.name}}</text>
+        <text class="tower-cost">{{item.cost}} 金币</text>
+      </view>
+    </view>
+
+    <view wx:else class="tower-detail">
+      <view class="stat-row"><text>状态</text><text>{{towerStats}}</text></view>
+      <view
+        wx:for="{{upgrades}}"
+        wx:key="label"
+        class="upgrade-btn {{item.disabled ? 'off' : ''}}"
+        data-branch="{{item.branch}}"
+        bindtap="onUpgrade"
+      >{{item.label}} · {{item.cost}}</view>
+      <view wx:if="{{showRally}}" class="rally-btn" bindtap="onRally">调整士兵集结点</view>
+      <view class="sell-btn" bindtap="onSell">{{sellLabel}}</view>
+    </view>
+
+    <view class="sheet-foot">
+        <text>{{siteCount}}</text>
+        <text class="range-toggle" bindtap="toggleRanges">范围 {{showRanges ? '开' : '关'}}</text>
+        <text bindtap="toggleMute">{{muted ? '声音关' : '声音开'}}</text>
+        <text bindtap="openHelp">说明</text>
+        <text bindtap="goBack">返回</text>
+    </view>
+  </view>
+
+  <view wx:if="{{toast}}" class="toast">{{toast}}</view>
+
+  <view wx:if="{{showPause}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <text class="eyebrow">TAKE A BREATH</text>
+      <view class="modal-title">战场已暂停</view>
+      <view class="modal-text">你的防线正在等待下一道指令。</view>
+      <view class="primary-btn" bindtap="onResume">继续战斗 →</view>
+      <view class="secondary-btn" bindtap="onRestart">重新部署本关</view>
+      <view class="text-btn" bindtap="openCampaign">查看战役地图</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showResult}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <text class="eyebrow">{{resultEyebrow}}</text>
+      <view class="result-stars">{{resultStars}}</view>
+      <view class="modal-title">{{resultTitle}}</view>
+      <view class="modal-text">{{resultDesc}}</view>
+      <view wx:if="{{showNext}}" class="primary-btn" bindtap="onNext">{{nextLabel}}</view>
+      <view class="secondary-btn" bindtap="onRestart">再次挑战</view>
+      <view class="text-btn" bindtap="openCampaign">查看战役地图</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showHelp}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <text class="eyebrow">HOW TO PLAY</text>
+      <view class="modal-title">守住每一条道路。</view>
+      <view class="help-line">点战场空地建造。点已有塔可升级、出售，三级塔可选专精。</view>
+      <view class="help-line">弓箭塔打飞行，兵营拦地面，法师破护甲，炮兵打一片。</view>
+      <view class="help-line">点艾尔利克再点道路移动。火雨、援军点技能后再点道路。</view>
+      <view class="primary-btn" bindtap="closeHelp">明白，返回战场</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCampaign}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card campaign-card">
+      <view class="modal-head">
+        <view class="modal-head-copy">
+          <text class="eyebrow">CHOOSE YOUR BATTLE</text>
+          <view class="modal-title">每一道防线</view>
+        </view>
+        <text class="close" bindtap="closeCampaign">×</text>
+      </view>
+      <view class="diff-row">
+        <text class="diff {{difficulty === 'casual' ? 'on' : ''}}" data-diff="casual" bindtap="setDifficulty">休闲</text>
+        <text class="diff {{difficulty === 'normal' ? 'on' : ''}}" data-diff="normal" bindtap="setDifficulty">普通</text>
+        <text class="diff {{difficulty === 'veteran' ? 'on' : ''}}" data-diff="veteran" bindtap="setDifficulty">老兵</text>
+      </view>
+      <scroll-view scroll-y class="stage-scroll">
+        <view class="stage-grid">
+          <view
+            wx:for="{{stages}}"
+            wx:key="index"
+            class="stage-card {{item.current ? 'current' : ''}}"
+            data-index="{{item.index}}"
+            bindtap="pickStage"
+          >
+            <image class="stage-map" src="{{item.map}}" mode="aspectFill"></image>
+            <text class="stage-name">{{item.no}} {{item.name}}</text>
+            <text class="stage-stars">{{item.starText}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

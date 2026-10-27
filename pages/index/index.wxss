@@ -618,6 +618,29 @@
   font-weight: 700;
 }
 
+.history-title-main {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.back-home,
+.back-link {
+  color: #e7c581;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.back-home {
+  align-self: flex-start;
+  margin-bottom: 8rpx;
+}
+
+.back-link {
+  margin-right: 16rpx;
+  font-size: 26rpx;
+}
+
 .round-tip {
   color: rgba(232, 211, 171, 0.62);
   font-size: 24rpx;
@@ -938,6 +961,11 @@
 
 .page.is-landscape .history-title {
   font-size: 15px;
+}
+
+.page.is-landscape .back-link {
+  margin-right: 8px;
+  font-size: 12px;
 }
 
 .page.is-landscape .round-tip {

@@ -1,0 +1,49 @@
+<view class="page" style="padding-top: {{statusPad}}px;">
+  <view class="hero">
+    <view class="hero-logo">黔</view>
+    <view class="hero-title">捉鸡记账本</view>
+    <view class="hero-divider">
+      <view class="divider-line"></view>
+      <view class="divider-dot"></view>
+      <view class="divider-line"></view>
+    </view>
+    <view class="hero-subtitle">先选一种记账方式</view>
+  </view>
+
+  <view class="mode-list">
+    <view class="mode-card" bindtap="openSolo" hover-class="mode-card-hover">
+      <view class="mode-kicker">单人模式</view>
+      <view class="mode-title">轻量记账</view>
+      <view class="mode-desc">一台手机直接记下四家分数，适合已经口算完的牌局。</view>
+      <view class="mode-action">进入</view>
+    </view>
+
+    <view class="mode-card" bindtap="openMulti" hover-class="mode-card-hover">
+      <view class="mode-kicker">多人模式</view>
+      <view class="mode-title">轮流申报</view>
+      <view class="mode-desc">至少两人入座。每人填写自己的胡牌、豆和鸡，全部提交后自动结算。</view>
+      <view class="mode-action">进入</view>
+    </view>
+
+    <view class="mode-card zuma-card" bindtap="openZuma" hover-class="mode-card-hover">
+      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
+      <view class="mode-title">祖玛豪华版</view>
+      <view class="mode-desc">经典祖玛游戏，原生Canvas 2D流畅运行，支持触控瞄准、快速换球、关卡选择与AI自动托管。</view>
+      <view class="mode-action zuma-action">游玩</view>
+    </view>
+
+    <view class="mode-card cutrope-card" bindtap="openCutrope" hover-class="mode-card-hover">
+      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
+      <view class="mode-title">割绳子</view>
+      <view class="mode-desc">划断绳索、收集星星、喂食 Om Nom。50 个经典关卡，触屏即玩，进度自动保存。</view>
+      <view class="mode-action cutrope-action">游玩</view>
+    </view>
+
+    <view class="mode-card kr-card" bindtap="openKingdomrush" hover-class="mode-card-hover">
+      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
+      <view class="mode-title">王国保卫战</view>
+      <view class="mode-desc">15 关前线战役。点空地建塔，召唤波次，指挥英雄、火雨和援军守住道路。</view>
+      <view class="mode-action kr-action">游玩</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,444 @@
+.zuma-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 50% 60rpx, rgba(198, 151, 75, 0.16), rgba(198, 151, 75, 0) 240rpx),
+    linear-gradient(180deg, #070705 0%, #0d0b08 55%, #050504 100%);
+  color: #ead7ae;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* 顶部状态与导航栏：严格避开右上角微信胶囊与状态栏 */
+.top-nav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 24rpx;
+  padding-bottom: 16rpx;
+  background: rgba(12, 12, 9, 0.95);
+  border-bottom: 1rpx solid rgba(199, 154, 87, 0.35);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.nav-back-pill {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  background: rgba(28, 24, 16, 0.95);
+  border: 1rpx solid rgba(199, 154, 87, 0.5);
+  color: #e7c581;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.stage-tag {
+  color: #efd7a4;
+  font-size: 26rpx;
+  font-weight: 700;
+  padding: 6rpx 14rpx;
+  background: rgba(199, 154, 87, 0.18);
+  border-radius: 10rpx;
+  border: 1rpx solid rgba(199, 154, 87, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.nav-icon-btn {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #3f3320 0%, #22180d 100%);
+  border: 1rpx solid rgba(214, 166, 88, 0.6);
+  color: #efd7a4;
+  font-size: 24rpx;
+}
+
+/* 游戏舞台区域：以 4:3 比例自适应撑满居中，展示全貌 */
+.board-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 20rpx;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.board-frame {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 4 / 3;
+  max-height: 100%;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow:
+    0 16rpx 40rpx rgba(0, 0, 0, 0.8),
+    0 0 0 2rpx rgba(214, 166, 88, 0.5),
+    inset 0 0 24rpx rgba(0, 0, 0, 0.9);
+  background: #000;
+}
+
+.is-landscape .board-frame {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.zuma-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 换球悬浮浮标 */
+.quick-swap-btn {
+  position: absolute;
+  right: 18rpx;
+  bottom: 18rpx;
+  z-index: 5;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffd980, #c88934 60%, #563310);
+  border: 2rpx solid #ffe8aa;
+  box-shadow:
+    0 8rpx 20rpx rgba(0, 0, 0, 0.6),
+    0 0 16rpx rgba(255, 217, 128, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap-icon {
+  font-size: 30rpx;
+  font-weight: 900;
+  color: #1f1103;
+  line-height: 1;
+}
+
+.swap-txt {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #1f1103;
+  line-height: 1;
+  margin-top: 2rpx;
+}
+
+/* 提示气泡 */
+.toast-bubble {
+  position: absolute;
+  left: 50%;
+  top: 40rpx;
+  transform: translateX(-50%);
+  background: rgba(22, 18, 12, 0.92);
+  border: 1rpx solid rgba(255, 217, 128, 0.6);
+  padding: 10rpx 28rpx;
+  border-radius: 28rpx;
+  color: #ffd980;
+  font-size: 26rpx;
+  font-weight: 700;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* 底部操作栏：排版大方，高质感黄金暗调 */
+.bottom-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 16rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(12, 12, 9, 0.95);
+  border-top: 1rpx solid rgba(199, 154, 87, 0.35);
+  gap: 10rpx;
+  box-sizing: border-box;
+}
+
+.action-btn {
+  flex: 1;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  border-radius: 14rpx;
+  background: linear-gradient(180deg, #3f3320 0%, #22180d 100%);
+  border: 1rpx solid rgba(214, 166, 88, 0.5);
+  color: #efd7a4;
+  box-sizing: border-box;
+}
+
+.action-btn.primary-swap {
+  flex: 1.4;
+  background: linear-gradient(180deg, #f6d27e 0%, #c98936 100%);
+  border-color: #ffe59f;
+  color: #201005;
+}
+
+.action-btn.active-bot {
+  background: linear-gradient(180deg, #3dcc7a 0%, #1c6d3d 100%);
+  border-color: #64f4a3;
+  color: #ffffff;
+}
+
+.btn-icon {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.btn-txt {
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 弹窗通用样式 */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 580rpx;
+  background: linear-gradient(180deg, #221c13 0%, #110e0a 100%);
+  border: 2rpx solid rgba(214, 166, 88, 0.7);
+  border-radius: 24rpx;
+  padding: 36rpx 32rpx;
+  box-sizing: border-box;
+  box-shadow: 0 24rpx 50rpx rgba(0, 0, 0, 0.85);
+  text-align: center;
+}
+
+.modal-card.wide {
+  max-width: 660rpx;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1rpx solid rgba(199, 154, 87, 0.3);
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #f7d898;
+}
+
+.modal-close {
+  font-size: 44rpx;
+  color: rgba(232, 211, 171, 0.7);
+  line-height: 1;
+}
+
+.modal-sub {
+  font-size: 24rpx;
+  color: rgba(232, 211, 171, 0.65);
+  margin-top: 12rpx;
+  margin-bottom: 28rpx;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.m-btn {
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  background: linear-gradient(180deg, #3f3320 0%, #22180d 100%);
+  border: 1rpx solid rgba(214, 166, 88, 0.6);
+  color: #efd7a4;
+}
+
+.m-btn.primary {
+  background: linear-gradient(180deg, #f6d27e 0%, #c98936 100%);
+  border-color: #ffe59f;
+  color: #201005;
+}
+
+.m-btn.danger {
+  background: linear-gradient(180deg, #a83827 0%, #6e1d13 100%);
+  border-color: #ff9f91;
+  color: #fff;
+}
+
+/* 关卡选择列表 */
+.stages-scroll {
+  max-height: 60vh;
+  margin-bottom: 24rpx;
+}
+
+.stages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  padding: 8rpx;
+}
+
+.stage-cell {
+  padding: 20rpx 10rpx;
+  border-radius: 14rpx;
+  background: rgba(30, 24, 17, 0.9);
+  border: 1rpx solid rgba(199, 154, 87, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stage-cell.unlocked {
+  border-color: #d6a658;
+}
+
+.stage-cell.current {
+  background: rgba(199, 154, 87, 0.25);
+  border-color: #ffd980;
+  box-shadow: 0 0 12rpx rgba(255, 217, 128, 0.4);
+}
+
+.stage-cell.locked {
+  opacity: 0.4;
+}
+
+.stage-num {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #efd7a4;
+}
+
+.stage-name {
+  font-size: 20rpx;
+  color: rgba(232, 211, 171, 0.7);
+  margin-top: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.stage-status {
+  font-size: 18rpx;
+  color: #ffd23f;
+  margin-top: 4rpx;
+}
+
+/* 玩法说明 */
+.help-scroll {
+  max-height: 55vh;
+  text-align: left;
+  margin-bottom: 24rpx;
+}
+
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 18rpx;
+  font-size: 26rpx;
+  line-height: 38rpx;
+  color: #e8d3ab;
+}
+
+.help-num {
+  color: #ffd23f;
+  font-weight: 700;
+}
+
+.hl {
+  color: #ffd23f;
+  font-weight: 700;
+}
+
+/* 结算盒子 */
+.win-title {
+  font-size: 38rpx;
+  color: #ffd23f;
+  text-shadow: 0 0 16rpx rgba(255, 210, 63, 0.4);
+}
+
+.lose-title {
+  font-size: 38rpx;
+  color: #ef5b5b;
+}
+
+.result-score-box {
+  margin: 28rpx 0;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1rpx solid rgba(199, 154, 87, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.res-label {
+  font-size: 22rpx;
+  color: rgba(232, 211, 171, 0.6);
+}
+
+.res-num {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #ffd23f;
+  margin-top: 4rpx;
+}
+
+.new-record-badge {
+  position: absolute;
+  top: -16rpx;
+  right: 16rpx;
+  background: #ef5b5b;
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-weight: 700;
+}

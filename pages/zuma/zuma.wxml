@@ -1,0 +1,158 @@
+<view class="zuma-page {{isLandscape ? 'is-landscape' : 'is-portrait'}}">
+  <!-- 顶部状态栏：避开系统状态栏与微信胶囊按钮 -->
+  <view class="top-nav" style="padding-top: {{navPadTop}}px; padding-right: {{menuRightPad}}px;">
+    <view class="nav-left">
+      <view class="nav-back-pill" bindtap="goBack">‹ 首页</view>
+      <view class="stage-tag">第{{stageNum}}-{{levelNum}}关 · {{currentStageName}}</view>
+    </view>
+    <view class="nav-right">
+      <view class="nav-icon-btn" bindtap="toggleMute">
+        {{muted ? '🔇' : '🔊'}}
+      </view>
+      <view class="nav-icon-btn" bindtap="togglePause">
+        {{isPaused ? '▶' : '⏸'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 游戏主舞台：4:3比例居中，100%全景展示神庙轨道与石蛙 -->
+  <view class="board-area">
+    <view class="board-frame" id="boardWrap">
+      <canvas
+        type="2d"
+        id="zumaCanvas"
+        class="zuma-canvas"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchCancel"
+      ></canvas>
+
+      <!-- 快速换球悬浮浮标 -->
+      <view class="quick-swap-btn" bindtap="onSwapBall">
+        <text class="swap-icon">⇄</text>
+        <text class="swap-txt">换球</text>
+      </view>
+
+      <!-- 倒计时/提示气泡 -->
+      <view wx:if="{{toastMsg}}" class="toast-bubble">{{toastMsg}}</view>
+    </view>
+  </view>
+
+  <!-- 底部快捷操作栏：大方整洁，不拥挤变形 -->
+  <view class="bottom-bar">
+    <view class="action-btn primary-swap" bindtap="onSwapBall">
+      <text class="btn-icon">⇄</text>
+      <text class="btn-txt">交换弹珠</text>
+    </view>
+    <view class="action-btn {{botActive ? 'active-bot' : ''}}" bindtap="toggleBot">
+      <text class="btn-icon">🤖</text>
+      <text class="btn-txt">{{botActive ? '自动中' : 'AI托管'}}</text>
+    </view>
+    <view class="action-btn" bindtap="openStagesModal">
+      <text class="btn-icon">🗺</text>
+      <text class="btn-txt">选关</text>
+    </view>
+    <view class="action-btn" bindtap="restartLevel">
+      <text class="btn-icon">↺</text>
+      <text class="btn-txt">重玩</text>
+    </view>
+    <view class="action-btn" bindtap="openHelpModal">
+      <text class="btn-icon">?</text>
+      <text class="btn-txt">说明</text>
+    </view>
+  </view>
+
+  <!-- 暂停弹窗 -->
+  <view wx:if="{{showPauseModal}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <view class="modal-title">游戏已暂停</view>
+      <view class="modal-sub">第 {{stageNum}}-{{levelNum}} 关 · 当前得分 {{score}}</view>
+      <view class="modal-actions">
+        <view class="m-btn primary" bindtap="resumeGame">继续游戏</view>
+        <view class="m-btn" bindtap="restartLevel">重玩本关</view>
+        <view class="m-btn" bindtap="openStagesModal">选择关卡</view>
+        <view class="m-btn" bindtap="openHelpModal">玩法说明</view>
+        <view class="m-btn danger" bindtap="goBack">退出游戏</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关卡选择弹窗 -->
+  <view wx:if="{{showStagesModal}}" class="modal-mask" bindtap="closeStagesModal" catchtouchmove="preventMove">
+    <view class="modal-card wide" catchtap="preventTap">
+      <view class="modal-header">
+        <text class="modal-title">关卡选择 (1-13)</text>
+        <text class="modal-close" bindtap="closeStagesModal">×</text>
+      </view>
+      <scroll-view class="stages-scroll" scroll-y>
+        <view class="stages-grid">
+          <view
+            wx:for="{{stagesList}}"
+            wx:key="index"
+            class="stage-cell {{item.unlocked ? 'unlocked' : 'locked'}} {{item.current ? 'current' : ''}}"
+            data-index="{{item.index}}"
+            bindtap="selectStage"
+          >
+            <view class="stage-num">{{item.index + 1}}</view>
+            <view class="stage-name">{{item.name}}</view>
+            <view class="stage-status">{{item.statusText}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 玩法说明弹窗 -->
+  <view wx:if="{{showHelpModal}}" class="modal-mask" bindtap="closeHelpModal" catchtouchmove="preventMove">
+    <view class="modal-card" catchtap="preventTap">
+      <view class="modal-header">
+        <text class="modal-title">祖玛玩法指南</text>
+        <text class="modal-close" bindtap="closeHelpModal">×</text>
+      </view>
+      <scroll-view class="help-scroll" scroll-y>
+        <view class="help-item">
+          <text class="help-num">1.</text>
+          <text class="help-txt"><text class="hl">瞄准与射击：</text>手指按住棋盘拖动即可瞄准石蛙方向，松开手指立即发射弹珠。</text>
+        </view>
+        <view class="help-item">
+          <text class="help-num">2.</text>
+          <text class="help-txt"><text class="hl">换球操作：</text>点击右下角“换球 ⇄”按钮或石蛙中心，可随时交换口中与背上的弹珠。</text>
+        </view>
+        <view class="help-item">
+          <text class="help-num">3.</text>
+          <text class="help-txt"><text class="hl">消除规则：</text>让 3 颗及以上相同颜色的弹珠连成一线即可消除并赚取高额得分。</text>
+        </view>
+        <view class="help-item">
+          <text class="help-num">4.</text>
+          <text class="help-txt"><text class="hl">神奇道具球：</text>消除带有特效的弹珠可触发炸弹爆炸、全线倒退、轨道减速和精准瞄准线！</text>
+        </view>
+        <view class="help-item">
+          <text class="help-num">5.</text>
+          <text class="help-txt"><text class="hl">AI托管辅助：</text>点击“🤖AI托管”可开启智能AI自动计算轨道并打出精彩连击！</text>
+        </view>
+      </scroll-view>
+      <view class="m-btn primary" bindtap="closeHelpModal">我明白了</view>
+    </view>
+  </view>
+
+  <!-- 关卡胜利 / 游戏结束弹窗 -->
+  <view wx:if="{{showResultModal}}" class="modal-mask" catchtouchmove="preventMove">
+    <view class="modal-card">
+      <view class="modal-title {{resultIsWin ? 'win-title' : 'lose-title'}}">
+        {{resultTitle}}
+      </view>
+      <view class="result-score-box">
+        <text class="res-label">最终得分</text>
+        <text class="res-num">{{score}}</text>
+        <text wx:if="{{isNewRecord}}" class="new-record-badge">新纪录!</text>
+      </view>
+      <view class="modal-actions">
+        <view wx:if="{{resultIsWin}}" class="m-btn primary" bindtap="nextLevel">进入下一关</view>
+        <view class="m-btn {{resultIsWin ? '' : 'primary'}}" bindtap="restartLevel">重新开始</view>
+        <view class="m-btn" bindtap="openStagesModal">选择关卡</view>
+        <view class="m-btn danger" bindtap="goBack">返回首页</view>
+      </view>
+    </view>
+  </view>
+</view>

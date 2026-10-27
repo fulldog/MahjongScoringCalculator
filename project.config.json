@@ -1,7 +1,17 @@
 {
   "description": "Mahjong scoring calculator mini program",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "temp_cutrope" },
+      { "type": "folder", "value": "temp_zuma" },
+      { "type": "folder", "value": "temp_kr" },
+      { "type": "glob", "value": "temp_cutrope/**" },
+      { "type": "glob", "value": "temp_zuma/**" },
+      { "type": "glob", "value": "temp_kr/**" },
+      { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": ".idea" },
+      { "type": "folder", "value": ".git" }
+    ],
     "include": []
   },
   "setting": {
@@ -25,7 +35,15 @@
     "swc": false,
     "disableSWC": true,
     "babelSetting": {
-      "ignore": [],
+      "ignore": [
+        "pages/kingdomrush/kingdomrush.js",
+        "pages/kingdomrush/engine/engine.js",
+        "pages/kingdomrush/engine/renderer.js",
+        "pages/kingdomrush/engine/sound.js",
+        "pages/kingdomrush/engine/data.js",
+        "pages/kingdomrush/engine/sprites.js",
+        "pages/kingdomrush/engine/sounds.js"
+      ],
       "disablePlugins": [],
       "outputPath": ""
     }

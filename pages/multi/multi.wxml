@@ -1,0 +1,200 @@
+<view class="page">
+  <view wx:if="{{phase !== 'seat' && scoreRows.length}}" class="score-strip">
+    <view wx:for="{{scoreRows}}" wx:key="id" class="score-chip">
+      <text class="score-name">{{item.label}} {{item.name}}</text>
+      <text class="score-value {{item.tone}}">{{item.score}}</text>
+      <text wx:if="{{item.deltaText}}" class="score-delta {{item.deltaTone}}">{{item.deltaText}}</text>
+    </view>
+  </view>
+
+  <block wx:if="{{phase === 'seat'}}">
+    <view class="intro">
+      <view class="intro-title">入座</view>
+      <view class="intro-desc">点击空位填写昵称。至少两人入座后才能开局，未入座的方位不参与结算。</view>
+    </view>
+
+    <view class="seat-grid">
+      <view
+        wx:for="{{seatCards}}"
+        wx:key="key"
+        class="seat-card {{item.occupied ? 'is-on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onSeatTap"
+        hover-class="seat-card-hover"
+      >
+        <view class="seat-badge">{{item.initial}}</view>
+        <view class="seat-label">{{item.label}}</view>
+        <view class="seat-name">{{item.occupied ? item.name : '点击入座'}}</view>
+        <view wx:if="{{item.occupied}}" class="seat-hint">改名 / 离座</view>
+      </view>
+    </view>
+
+    <view class="seat-count">已入座 {{seatedCount}}/4，至少 2 人</view>
+  </block>
+
+  <block wx:if="{{phase === 'report'}}">
+    <view class="report-head">
+      <view>
+        <view class="intro-title">第{{round}}局</view>
+        <view class="intro-desc">当前填写 {{currentTitle}}（{{progressText}}）</view>
+      </view>
+      <view class="text-link" bindtap="renameCurrent">改名</view>
+    </view>
+
+    <view class="progress">
+      <view
+        wx:for="{{progress}}"
+        wx:key="id"
+        class="progress-item is-{{item.state}}"
+        data-index="{{item.index}}"
+        bindtap="onProgressTap"
+      >{{item.name}}</view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">本局结果</view>
+      <view class="choices">
+        <view
+          wx:for="{{outcomes}}"
+          wx:key="key"
+          class="choice {{draft.outcome === item.key ? 'is-on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onOutcome"
+        >{{item.label}}</view>
+      </view>
+      <view class="hint">有人胡牌时，其余人选未胡走局或放炮。流局时，所有人都选黄庄有叫或黄庄无叫。</view>
+    </view>
+
+    <view wx:if="{{needOpponent}}" class="block">
+      <view class="block-title">{{opponentTitle}}</view>
+      <view class="choices">
+        <view
+          wx:for="{{opponents}}"
+          wx:key="id"
+          class="choice {{draft.opponentId === item.id ? 'is-on' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onOpponent"
+        >{{item.title}}</view>
+      </view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">叫口</view>
+      <view wx:if="{{jiaoMode === 'yes'}}" class="hint">记为有叫，可以捉鸡，豆照常计。</view>
+      <view wx:elif="{{jiaoMode === 'no'}}" class="hint">记为无叫。黄庄时豆不计，并向每家有叫赔查叫。</view>
+      <view wx:else class="switch-row" bindtap="onToggleJiao">
+        <text>有叫（听牌）</text>
+        <view class="switch {{draft.hasJiao ? 'is-on' : ''}}">{{draft.hasJiao ? '有' : '无'}}</view>
+      </view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">豆</view>
+      <view class="step-row">
+        <view>
+          <view class="step-label">闷豆</view>
+          <view class="step-note">每家 {{scoreRule.menDou}}</view>
+        </view>
+        <view class="stepper">
+          <view class="step-btn" data-field="menDou" data-delta="-1" bindtap="onStep">-</view>
+          <text class="step-value">{{draft.menDou}}</text>
+          <view class="step-btn" data-field="menDou" data-delta="1" bindtap="onStep">+</view>
+        </view>
+      </view>
+      <view class="step-row">
+        <view>
+          <view class="step-label">爬坡豆</view>
+          <view class="step-note">每家 {{scoreRule.papoDou}}</view>
+        </view>
+        <view class="stepper">
+          <view class="step-btn" data-field="papoDou" data-delta="-1" bindtap="onStep">-</view>
+          <text class="step-value">{{draft.papoDou}}</text>
+          <view class="step-btn" data-field="papoDou" data-delta="1" bindtap="onStep">+</view>
+        </view>
+      </view>
+
+      <view class="sub-title">点豆 · 每笔 {{scoreRule.dianDou}}</view>
+      <view class="choices">
+        <view
+          wx:for="{{opponents}}"
+          wx:key="id"
+          class="choice {{dianOpponentId === item.id ? 'is-on' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onPickDian"
+        >{{item.title}}</view>
+      </view>
+      <view class="inline-actions">
+        <view class="minor" data-direction="gang" bindtap="onAddDian">杠了对方</view>
+        <view class="minor" data-direction="bei" bindtap="onAddDian">被对方杠</view>
+      </view>
+      <view wx:if="{{dianRows.length === 0}}" class="hint">还没有点豆</view>
+      <view wx:for="{{dianRows}}" wx:key="index" class="dian-row">
+        <text>{{item.text}}</text>
+        <text class="text-link" data-index="{{item.index}}" bindtap="onRemoveDian">删除</text>
+      </view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">鸡</view>
+      <view class="switch-row" data-field="chongfeng" bindtap="onFlag">
+        <text>冲锋鸡 · {{scoreRule.chongfeng}}</text>
+        <view class="switch {{draft.chongfeng ? 'is-on' : ''}}">{{draft.chongfeng ? '有' : '无'}}</view>
+      </view>
+      <view class="step-row">
+        <view>
+          <view class="step-label">鸡数</view>
+          <view class="step-note">每只 {{scoreRule.chicken}}</view>
+        </view>
+        <view class="stepper">
+          <view class="step-btn" data-field="chickenCount" data-delta="-1" bindtap="onStep">-</view>
+          <text class="step-value">{{draft.chickenCount}}</text>
+          <view class="step-btn" data-field="chickenCount" data-delta="1" bindtap="onStep">+</view>
+        </view>
+      </view>
+      <view class="switch-row" data-field="golden" bindtap="onFlag">
+        <text>金鸡 · 鸡分再 ×{{scoreRule.goldenMultiplier}}</text>
+        <view class="switch {{draft.golden ? 'is-on' : ''}}">{{draft.golden ? '是' : '否'}}</view>
+      </view>
+      <view class="hint">有叫的人互相抵消鸡分差额。一方无叫时，把有叫方的鸡分全额赔付。双方都无叫则鸡分不计。</view>
+    </view>
+
+    <view class="rules">
+      自摸每家{{scoreRule.zimo}}，点炮{{scoreRule.dianpao}}。黄庄时无叫向有叫各赔{{scoreRule.chaJiao}}，无叫的豆不计。
+    </view>
+  </block>
+
+  <block wx:if="{{phase === 'board'}}">
+    <view class="intro">
+      <view class="intro-title">第{{round}}局待开始</view>
+      <view class="intro-desc">下面是已经结算的累计分。下一局会从第一位重新申报。</view>
+    </view>
+
+    <view wx:if="{{historyView.length === 0}}" class="empty">暂无结算记录</view>
+    <view wx:else class="history-list">
+      <view wx:for="{{historyView}}" wx:key="id" class="history-card">
+        <view class="history-round">第{{item.round}}局</view>
+        <view wx:for="{{item.lines}}" wx:for-item="line" wx:for-index="lineIndex" wx:key="lineIndex" class="history-line">{{line}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view class="footer">
+    <view wx:if="{{phase === 'seat'}}" class="primary {{canStart ? '' : 'is-disabled'}}" bindtap="startGame">开始对局</view>
+
+    <block wx:if="{{phase === 'report'}}">
+      <view class="footer-row">
+        <view class="ghost {{isFirst ? 'is-disabled' : ''}}" bindtap="onPrev">上一位</view>
+        <view class="primary footer-grow" bindtap="onNext">{{nextButtonText}}</view>
+      </view>
+      <view class="footer-reset" bindtap="resetGame">重新开局</view>
+    </block>
+
+    <block wx:if="{{phase === 'board'}}">
+      <view class="primary" bindtap="nextRound">下一局</view>
+      <view class="footer-row">
+        <view wx:if="{{historyView.length}}" class="ghost" bindtap="undoLast">撤回上一局</view>
+        <view class="danger" bindtap="resetGame">重新开局</view>
+      </view>
+    </block>
+  </view>
+</view>

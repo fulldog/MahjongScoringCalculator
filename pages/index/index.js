@@ -156,7 +156,8 @@ Page({
     dragTargetKey: '',
     showHelpModal: false,
     isLandscape: false,
-    boardStyle: ''
+    boardStyle: '',
+    canGoBack: false
   },
 
   onLoad() {
@@ -166,6 +167,20 @@ Page({
 
   onShow() {
     this.syncOrientation()
+    const pages = getCurrentPages()
+    const canGoBack = pages.length > 1
+
+    if (canGoBack !== this.data.canGoBack) {
+      this.setData({ canGoBack })
+    }
+  },
+
+  goHome() {
+    wx.navigateBack({
+      fail: () => {
+        wx.reLaunch({ url: '/pages/home/home' })
+      }
+    })
   },
 
   onResize(res) {

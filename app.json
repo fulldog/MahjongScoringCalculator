@@ -1,7 +1,32 @@
 {
   "pages": [
-    "pages/index/index"
+    "pages/home/home",
+    "pages/index/index",
+    "pages/multi/multi",
+    "pages/zuma/zuma"
   ],
+  "subpackages": [
+    {
+      "root": "pages/cutrope",
+      "name": "cutrope",
+      "pages": [
+        "cutrope"
+      ]
+    },
+    {
+      "root": "pages/kingdomrush",
+      "name": "kingdomrush",
+      "pages": [
+        "kingdomrush"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/home/home": {
+      "network": "all",
+      "packages": ["cutrope", "kingdomrush"]
+    }
+  },
   "window": {
     "navigationBarTitleText": "捉鸡记账本",
     "navigationBarBackgroundColor": "#070705",
@@ -9,5 +34,6 @@
     "backgroundColor": "#070705"
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }
