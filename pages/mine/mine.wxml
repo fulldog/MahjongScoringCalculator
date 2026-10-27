@@ -1,0 +1,12 @@
+<view class="page">
+  <block wx:if="{{loggedIn && user}}">
+    <view class="card">
+      <image wx:if="{{user.avatarUrl}}" class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="avatar">{{user.initial || '我'}}</view>
+      <view class="name">{{user.nickname || '微信用户'}}</view>
+      <view class="meta">微信授权已登录</view>
+    </view>
+    <view class="logout" bindtap="logout">退出登录</view>
+  </block>
+  <auth-panel wx:else bind:success="onLogin"></auth-panel>
+</view>

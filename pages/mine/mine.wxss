@@ -1,0 +1,55 @@
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #070705, #100e0a);
+  color: #ead7ae;
+}
+
+.card {
+  margin: 32rpx;
+  padding: 36rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 24rpx;
+  background: rgba(16, 14, 10, 0.94);
+  border: 1rpx solid rgba(199, 154, 87, 0.34);
+}
+
+.avatar {
+  width: 140rpx;
+  height: 140rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2a2116;
+  color: #e7c581;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.name {
+  margin-top: 18rpx;
+  color: #efd7a4;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.meta {
+  margin-top: 8rpx;
+  color: rgba(232, 211, 171, 0.55);
+  font-size: 24rpx;
+}
+
+.logout {
+  margin: 12rpx 32rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(226, 91, 75, 0.5);
+  color: #e25b4b;
+  font-size: 28rpx;
+}

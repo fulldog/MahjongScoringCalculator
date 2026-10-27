@@ -1,0 +1,9 @@
+<view class="panel">
+  <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+    <image wx:if="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+    <view wx:else class="avatar placeholder">头像</view>
+  </button>
+  <input class="name" type="nickname" placeholder="填写昵称" placeholder-class="ph" value="{{nickname}}" bindinput="onName" />
+  <view class="login {{busy ? 'is-busy' : ''}}" bindtap="submit">{{busy ? '登录中' : '微信授权登录'}}</view>
+  <view class="note">不登录也可以玩单人记账和小游戏。统计、我的和多人入座需要登录。</view>
+</view>

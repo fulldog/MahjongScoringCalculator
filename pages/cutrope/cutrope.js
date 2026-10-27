@@ -251,6 +251,13 @@ Page({
         collectedChanged = true;
       }
       if (e.type === 'won') {
+        require('../../utils/minigame-report.js').report({
+          game: 'cutrope',
+          result: 'win',
+          score: this.world.collected || 0,
+          levelNo: this.index + 1,
+          stars: this.world.collected || 0
+        });
         this.setMode('won');
         this.terminalAt = Date.now() + 650;
         const prev = this.saved.scores[this.index] || 0;
@@ -259,6 +266,13 @@ Page({
         this.setData({ totalStars: this.calcTotalStars() });
       }
       if (e.type === 'lost') {
+        require('../../utils/minigame-report.js').report({
+          game: 'cutrope',
+          result: 'lose',
+          score: this.world.collected || 0,
+          levelNo: this.index + 1,
+          stars: this.world.collected || 0
+        });
         this.setMode('lost');
         this.terminalAt = Date.now() + 400;
       }

@@ -1,0 +1,29 @@
+<view class="page">
+  <auth-panel wx:if="{{!loggedIn}}" bind:success="onLogin"></auth-panel>
+  <block wx:else>
+    <view class="charts">
+      <view class="chart-card">
+        <view class="chart-title">近一个月胜率</view>
+        <canvas type="2d" id="winRing" class="chart"></canvas>
+        <view class="chart-foot" wx:if="{{stats}}">{{stats.wins}} 胜 · {{stats.losses}} 负 · {{stats.draws}} 平 · {{stats.matchCount}} 场</view>
+      </view>
+      <view class="chart-card">
+        <view class="chart-title">对局次数</view>
+        <canvas type="2d" id="weekBars" class="chart short"></canvas>
+      </view>
+      <view class="chart-card">
+        <view class="chart-title">对局人</view>
+        <canvas type="2d" id="oppBars" class="chart short"></canvas>
+      </view>
+    </view>
+    <view class="list-title">历史记录</view>
+    <view wx:if="{{!stats || stats.matches.length === 0}}" class="empty">这一个月还没有结束的牌局</view>
+    <view wx:for="{{stats.matches}}" wx:key="id" class="match">
+      <view>
+        <view class="match-code">房间 {{item.code}}</view>
+        <view class="match-time">{{item.endedAt}}</view>
+      </view>
+      <view class="match-score {{item.result}}">{{resultText[item.result]}} {{item.score > 0 ? '+' : ''}}{{item.score}}</view>
+    </view>
+  </block>
+</view>

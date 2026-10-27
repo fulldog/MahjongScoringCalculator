@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5ed">
+  <meta name="description" content="割断绳索，收集星星，把糖果送给 Om Nom。50 个原版关卡，鼠标和触屏即开即玩。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='29' fill='%2378ad33'/%3E%3Ccircle cx='23' cy='25' r='10' fill='white'/%3E%3Ccircle cx='41' cy='25' r='10' fill='white'/%3E%3Ccircle cx='26' cy='26' r='3'/%3E%3Ccircle cx='38' cy='26' r='3'/%3E%3Cpath d='M20 43q12 13 24 0' fill='none' stroke='%23273320' stroke-width='3'/%3E%3C/svg%3E">
+  <title>Cut the Rope · 割绳子</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data-loader.js"></script>
+  <script defer src="physics.js"></script>
+  <script defer src="media.js"></script>
+  <script defer src="renderer.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <svg class="icon-defs" aria-hidden="true"><defs>
+    <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8.5 7.5 12 12m-12-3 12-12M14 12l-3 3"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM15 8q5 4 0 8M18 4q9 8 0 16"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 5 1.2 7L12 18l-6.2 3.5L7 14.5l-5-5 7-1z"/></symbol>
+  </defs></svg>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="Cut the Rope 首页"><span class="brand-mark"><svg><use href="#i-scissors"/></svg></span><span>cut the rope<span class="brand-dot">.</span><small>一点巧思，一口快乐</small></span></a>
+      <div class="header-right"><span class="edition">THE LITTLE GAME COLLECTION <span>01</span></span><button id="soundBtn" class="icon-button" aria-label="开启声音" aria-pressed="false"><svg><use href="#i-sound"/></svg><span class="mute-slash"></span></button></div>
+    </header>
+    <main>
+      <div class="page-heading"><div><div class="eyebrow"><span></span> TIME FOR A LITTLE PLAY</div><h1>快乐，只需轻轻一划<span>。</span></h1><p>割断绳索，让小小的糖果，落进大大的期待。</p></div><div class="collection-tag"><svg><use href="#i-star"/></svg><span>50 个经典关卡<br><b>等你拆开</b></span></div></div>
+      <div class="game-layout">
+        <section class="game-section" aria-label="游戏区">
+          <div class="game-toolbar"><div class="chapter-label"><span class="chapter-number" id="boxBadge">01</span><div><b id="boxTitle">纸盒时光</b><small id="levelLabel">第 1 / 25 关</small></div></div><div id="hudStars" class="hud-stars" aria-label="已收集 0 颗星星"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div><div class="game-controls"><button id="restartBtn" class="icon-button" aria-label="重新开始（R）" title="重新开始 R"><svg><use href="#i-restart"/></svg></button><button id="pauseBtn" class="icon-button" aria-label="暂停（空格）" title="暂停 空格"><svg><use href="#i-pause"/></svg></button></div></div>
+          <div class="board" id="board">
+            <canvas id="gameCanvas" tabindex="0" aria-label="划过绳索来切断它。使用右侧切绳按钮也可游玩。点击泡泡可将其戳破，点击气垫吹动糖果。"></canvas>
+            <span class="board-caption">A LITTLE TREAT FOR OM NOM</span>
+            <div id="overlay" class="overlay">
+              <div class="overlay-card"><span class="tiny-label" id="overlayTag">HELLO, LITTLE FRIEND</span><h2 id="overlayTitle">Om Nom 饿啦！</h2><p id="overlayText">划过绳索，收集星星，<br>把糖果送到它的嘴边。</p><div id="resultStars" class="result-stars" hidden></div><button id="primaryBtn" class="primary-button">开始喂食 <svg><use href="#i-arrow"/></svg></button><button id="secondaryBtn" class="text-button" hidden>再玩一次</button></div>
+            </div>
+            <div class="render-error" id="renderError" hidden>画面恢复中，请点击“重新开始”。</div>
+          </div>
+          <div class="board-footer"><span><svg><use href="#i-scissors"/></svg> 按住并划动，切断绳索</span><button id="levelsBtn" class="text-button"><svg><use href="#i-grid"/></svg> 选择关卡</button></div>
+        </section>
+        <aside class="sidebar">
+          <section class="nom-card"><span class="tiny-label">MEET YOUR LITTLE FRIEND</span><div class="nom-portrait"><img src="assets/images/trim415.png" onerror="if(!this.dataset.fallback){this.dataset.fallback='true';this.src='../assets/images/trim415.png'}else{this.style.display='none'}" alt="绿色小怪物 Om Nom"><span class="speech">糖果呢？</span></div><h2>小吃货，大胃口。</h2><p>它叫 Om Nom。<br>最喜欢的事，是等你投喂。</p></section>
+          <section class="progress-card"><div class="section-label"><h3>你的甜蜜旅程</h3><span id="totalStars">0 / 150</span></div><div class="progress-track"><span id="progressFill"></span></div><button class="box-button active" data-box="1"><span class="box-icon cardboard"></span><span><b>纸盒时光</b><small>第一章 · 25 关</small></span><svg><use href="#i-arrow"/></svg></button><button class="box-button" data-box="2"><span class="box-icon fabric"></span><span><b>布盒奇遇</b><small>第二章 · 25 关</small></span><svg><use href="#i-arrow"/></svg></button></section>
+          <section class="tip-card"><span class="tip-number">小诀窍 / <b id="tipNumber">01</b></span><p id="tipText">有时，放手的时机<br>比方向更重要。</p><div id="accessibleActions" class="accessible-actions"></div></section>
+        </aside>
+      </div>
+      <footer class="site-footer"><span>给生活留一点好玩的空隙。</span><span>鼠标 / 触屏均可玩 <i>·</i> 进度自动保存 <i>·</i> <kbd>R</kbd> 重玩</span></footer>
+    </main>
+  </div>
+  <dialog id="levelDialog" aria-labelledby="dialogTitle"><div class="dialog-heading"><div><span class="tiny-label">CHOOSE YOUR NEXT TREAT</span><h2 id="dialogTitle">拆开下一份快乐</h2></div><button id="closeDialog" class="icon-button" aria-label="关闭关卡选择">×</button></div><div class="dialog-tabs"><button data-select-box="1" class="active">纸盒时光</button><button data-select-box="2">布盒奇遇</button></div><div id="levelGrid" class="level-grid"></div><p class="dialog-note">所有经典关卡均可自由选择 · 星星会留在这里</p></dialog>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

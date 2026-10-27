@@ -328,11 +328,25 @@ Page({
     if (event.type === 'wave') this.sound.setMusic(this.game.level.biome, true);
     if (event.type === 'won') {
       const stars = event.stars || 1;
+      require('../../utils/minigame-report.js').report({
+        game: 'kingdomrush',
+        result: 'win',
+        score: stars * 1000 + (this.game.lives || 0),
+        levelNo: this.game.level.id,
+        stars
+      });
       const id = this.game.level.id;
       this.save.stars[id] = Math.max(this.save.stars[id] || 0, stars);
       this.persist();
       this.openResult(true, stars);
     } else if (event.type === 'lost') {
+      require('../../utils/minigame-report.js').report({
+        game: 'kingdomrush',
+        result: 'lose',
+        score: this.game.kills || 0,
+        levelNo: this.game.level.id,
+        stars: 0
+      });
       this.openResult(false, 0);
     }
   },

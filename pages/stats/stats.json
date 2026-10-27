@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "统计",
+  "navigationBarBackgroundColor": "#070705",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#070705",
+  "usingComponents": {
+    "auth-panel": "/components/auth-panel/auth-panel"
+  }
+}

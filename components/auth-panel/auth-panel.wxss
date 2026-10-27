@@ -1,0 +1,65 @@
+.panel {
+  padding: 48rpx 36rpx;
+}
+
+.avatar-btn {
+  width: 140rpx;
+  height: 140rpx;
+  padding: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1c1812;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar,
+.placeholder {
+  width: 140rpx;
+  height: 140rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e7c581;
+  font-size: 28rpx;
+}
+
+.name {
+  margin-top: 28rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 16rpx;
+  background: #16130e;
+  color: #fff6e4;
+  font-size: 30rpx;
+}
+
+.ph {
+  color: rgba(232, 211, 171, 0.35);
+}
+
+.login {
+  margin-top: 28rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  background: linear-gradient(180deg, #f6d27e, #c98936);
+  color: #201005;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.login.is-busy {
+  opacity: 0.7;
+}
+
+.note {
+  margin-top: 20rpx;
+  color: rgba(232, 211, 171, 0.62);
+  font-size: 24rpx;
+  line-height: 38rpx;
+}

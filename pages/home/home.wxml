@@ -1,49 +1,119 @@
 <view class="page" style="padding-top: {{statusPad}}px;">
-  <view class="hero">
-    <view class="hero-logo">黔</view>
-    <view class="hero-title">捉鸡记账本</view>
-    <view class="hero-divider">
-      <view class="divider-line"></view>
-      <view class="divider-dot"></view>
-      <view class="divider-line"></view>
-    </view>
-    <view class="hero-subtitle">先选一种记账方式</view>
-  </view>
-
-  <view class="mode-list">
-    <view class="mode-card" bindtap="openSolo" hover-class="mode-card-hover">
-      <view class="mode-kicker">单人模式</view>
-      <view class="mode-title">轻量记账</view>
-      <view class="mode-desc">一台手机直接记下四家分数，适合已经口算完的牌局。</view>
-      <view class="mode-action">进入</view>
+  <view class="shell">
+    <view class="hero">
+      <view class="hero-logo">黔</view>
+      <view class="hero-copy">
+        <view class="hero-title">捉鸡记账本</view>
+        <view class="hero-subtitle">牌桌记账，闲时开一局</view>
+      </view>
     </view>
 
-    <view class="mode-card" bindtap="openMulti" hover-class="mode-card-hover">
-      <view class="mode-kicker">多人模式</view>
-      <view class="mode-title">轮流申报</view>
-      <view class="mode-desc">至少两人入座。每人填写自己的胡牌、豆和鸡，全部提交后自动结算。</view>
-      <view class="mode-action">进入</view>
+    <view class="section">
+      <view class="section-head">
+        <view class="section-mark"></view>
+        <text class="section-title">牌桌</text>
+        <text class="section-note">同一台手机</text>
+      </view>
+
+      <view class="score-list">
+        <view class="score-card" bindtap="openSolo" hover-class="card-hover">
+          <view class="glyph glyph-solo">
+            <view class="solo-sheet">
+              <view class="solo-line"></view>
+              <view class="solo-line short"></view>
+              <view class="solo-line"></view>
+            </view>
+            <view class="solo-plus">
+              <view class="plus-v"></view>
+              <view class="plus-h"></view>
+            </view>
+          </view>
+          <view class="score-main">
+            <view class="score-kicker">单人模式</view>
+            <view class="score-title">轻量记账</view>
+            <view class="score-desc">四家分数直接累加，适合已经口算完的牌局。</view>
+          </view>
+          <view class="score-go">进入</view>
+        </view>
+
+        <view class="score-card" bindtap="openMulti" hover-class="card-hover">
+          <view class="glyph glyph-multi">
+            <view class="wind wind-n"><text>北</text></view>
+            <view class="wind wind-w"><text>西</text></view>
+            <view class="wind wind-e"><text>东</text></view>
+            <view class="wind wind-s"><text>南</text></view>
+          </view>
+          <view class="score-main">
+            <view class="score-kicker">多人模式</view>
+            <view class="score-title">轮流申报</view>
+            <view class="score-desc">至少两人入座，填写胡牌、豆和鸡后自动结算。</view>
+          </view>
+          <view class="score-go">进入</view>
+        </view>
+      </view>
     </view>
 
-    <view class="mode-card zuma-card" bindtap="openZuma" hover-class="mode-card-hover">
-      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
-      <view class="mode-title">祖玛豪华版</view>
-      <view class="mode-desc">经典祖玛游戏，原生Canvas 2D流畅运行，支持触控瞄准、快速换球、关卡选择与AI自动托管。</view>
-      <view class="mode-action zuma-action">游玩</view>
-    </view>
+    <view class="section">
+      <view class="section-head">
+        <view class="section-mark section-mark-play"></view>
+        <text class="section-title">闲时</text>
+        <text class="section-note">触屏即玩</text>
+      </view>
 
-    <view class="mode-card cutrope-card" bindtap="openCutrope" hover-class="mode-card-hover">
-      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
-      <view class="mode-title">割绳子</view>
-      <view class="mode-desc">划断绳索、收集星星、喂食 Om Nom。50 个经典关卡，触屏即玩，进度自动保存。</view>
-      <view class="mode-action cutrope-action">游玩</view>
-    </view>
+      <view class="play-list">
+        <view class="play-card play-zuma" bindtap="openZuma" hover-class="card-hover">
+          <view class="glyph glyph-zuma">
+            <view class="ball ball-r"></view>
+            <view class="ball ball-y"></view>
+            <view class="ball ball-b"></view>
+            <view class="frog">
+              <view class="frog-eye left"><view class="pupil"></view></view>
+              <view class="frog-eye right"><view class="pupil"></view></view>
+            </view>
+          </view>
+          <view class="play-body">
+            <view class="play-title">祖玛豪华版</view>
+            <view class="play-desc">瞄准发射，同色三连消除，可 AI 托管</view>
+          </view>
+          <view class="chevron"></view>
+        </view>
 
-    <view class="mode-card kr-card" bindtap="openKingdomrush" hover-class="mode-card-hover">
-      <view class="mode-kicker">休闲娱乐 · 移植小游戏</view>
-      <view class="mode-title">王国保卫战</view>
-      <view class="mode-desc">15 关前线战役。点空地建塔，召唤波次，指挥英雄、火雨和援军守住道路。</view>
-      <view class="mode-action kr-action">游玩</view>
+        <view class="play-card play-rope" bindtap="openCutrope" hover-class="card-hover">
+          <view class="glyph glyph-rope">
+            <view class="rope"></view>
+            <view class="wrap left"></view>
+            <view class="candy">
+              <view class="candy-shine"></view>
+            </view>
+            <view class="wrap right"></view>
+            <text class="star">★</text>
+          </view>
+          <view class="play-body">
+            <view class="play-title">割绳子</view>
+            <view class="play-desc">划断绳索，收集星星，50 个关卡</view>
+          </view>
+          <view class="chevron"></view>
+        </view>
+
+        <view class="play-card play-kr" bindtap="openKingdomrush" hover-class="card-hover">
+          <view class="glyph glyph-kr">
+            <view class="tower">
+              <view class="crenel c1"></view>
+              <view class="crenel c2"></view>
+              <view class="crenel c3"></view>
+              <view class="door"></view>
+            </view>
+            <view class="flagpole"></view>
+            <view class="flag"></view>
+            <view class="ground"></view>
+          </view>
+          <view class="play-body">
+            <view class="play-title">王国保卫战</view>
+            <view class="play-desc">点地建塔，15 关守住道路</view>
+          </view>
+          <view class="chevron"></view>
+        </view>
+      </view>
     </view>
   </view>
 </view>

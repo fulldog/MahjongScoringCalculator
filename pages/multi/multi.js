@@ -2,519 +2,303 @@ const {
   SCORE,
   LIMITS,
   OUTCOMES,
-  createSeats,
   createEmptyReport,
   normalizeReport,
-  jiaoMode,
-  validateReport,
-  settleRound
+  jiaoMode
 } = require('../../utils/mahjong-score.js')
-
-const STORAGE_KEY = 'mahjong-multi-state-v1'
+const auth = require('../../utils/auth.js')
+const { request } = require('../../utils/api.js')
+const roomSocket = require('../../utils/room-socket.js')
 
 function toneOf(value) {
   if (value > 0) {
-    return 'num-pos'
+    return 'pos'
   }
-
   if (value < 0) {
-    return 'num-neg'
+    return 'neg'
   }
-
   return ''
 }
 
-function formatSigned(value) {
+function signed(value) {
   if (value > 0) {
-    return `+${value}`
+    return '+' + value
   }
-
   return String(value)
-}
-
-function initialState() {
-  return {
-    phase: 'seat',
-    seats: createSeats(),
-    players: [],
-    round: 1,
-    reportIndex: 0,
-    drafts: {},
-    history: []
-  }
-}
-
-function seatLabel(seats, key) {
-  const seat = (seats || []).find((item) => item.key === key)
-  return seat ? seat.label : ''
-}
-
-function restoreSeats(saved) {
-  const defaults = createSeats()
-
-  if (!Array.isArray(saved)) {
-    return defaults
-  }
-
-  return defaults.map((seat) => {
-    const found = saved.find((item) => item && item.key === seat.key)
-    const name = found && found.name ? Array.from(String(found.name).trim()).slice(0, 8).join('') : ''
-
-    return {
-      key: seat.key,
-      label: seat.label,
-      name
-    }
-  })
-}
-
-function buildView(state) {
-  const seats = state.seats || []
-  const history = state.history || []
-  let players = state.players || []
-  const seatedCount = seats.filter((seat) => seat.name).length
-  const seatCards = seats.map((seat) => ({
-    key: seat.key,
-    label: seat.label,
-    name: seat.name || '',
-    occupied: !!seat.name,
-    initial: seat.name ? Array.from(seat.name)[0] : seat.label
-  }))
-  const reportIndex = players.length ? Math.min(Math.max(state.reportIndex || 0, 0), players.length - 1) : 0
-  const currentPlayer = players[reportIndex] || null
-  const draft = currentPlayer ? normalizeReport(state.drafts && state.drafts[currentPlayer.id]) : createEmptyReport()
-  const opponents = currentPlayer
-    ? players
-        .filter((player) => player.id !== currentPlayer.id)
-        .map((player) => ({
-          id: player.id,
-          name: player.name,
-          title: `${seatLabel(seats, player.seat)} ${player.name}`
-        }))
-    : []
-  const latest = state.phase === 'board' ? history[0] : null
-  const deltaMap = {}
-
-  if (latest && Array.isArray(latest.deltas)) {
-    latest.deltas.forEach((item) => {
-      deltaMap[item.id] = Number(item.delta) || 0
-    })
-  }
-
-  const scoreRows = players.map((player) => {
-    const score = Number(player.score) || 0
-    const hasDelta = Object.prototype.hasOwnProperty.call(deltaMap, player.id)
-    const delta = hasDelta ? deltaMap[player.id] : 0
-
-    return {
-      id: player.id,
-      name: player.name,
-      label: seatLabel(seats, player.seat),
-      score,
-      tone: toneOf(score),
-      deltaText: hasDelta && latest ? `第${latest.round}局 ${formatSigned(delta)}` : '',
-      deltaTone: hasDelta ? toneOf(delta) : ''
-    }
-  })
-  const progress = players.map((player, index) => ({
-    id: player.id,
-    name: player.name,
-    index,
-    state: index === reportIndex ? 'current' : index < reportIndex ? 'done' : 'wait'
-  }))
-  const isLast = players.length > 0 && reportIndex === players.length - 1
-  const nextPlayer = players[reportIndex + 1]
-  let dianOpponentId = state.dianOpponentId
-
-  if (!opponents.some((item) => item.id === dianOpponentId)) {
-    dianOpponentId = opponents[0] ? opponents[0].id : ''
-  }
-
-  return {
-    seatCards,
-    seatedCount,
-    canStart: seatedCount >= 2,
-    currentPlayer,
-    currentTitle: currentPlayer ? `${seatLabel(seats, currentPlayer.seat)} ${currentPlayer.name}` : '',
-    draft,
-    opponents,
-    dianRows: (draft.dianDou || []).map((item, index) => {
-      const opponent = players.find((player) => player.id === item.opponentId)
-      const name = opponent ? opponent.name : '未知'
-
-      return {
-        index,
-        text: item.direction === 'gang' ? `杠了${name}` : `被${name}杠`
-      }
-    }),
-    dianOpponentId,
-    needOpponent: draft.outcome === 'jiepao' || draft.outcome === 'fangpao',
-    opponentTitle: draft.outcome === 'jiepao' ? '谁放的炮' : '谁接的炮',
-    jiaoMode: jiaoMode(draft.outcome),
-    isFirst: reportIndex === 0,
-    isLast,
-    nextButtonText: isLast ? '结算本局' : `下一位：${nextPlayer ? nextPlayer.name : ''}`,
-    progressText: players.length ? `${reportIndex + 1}/${players.length}` : '',
-    progress,
-    scoreRows,
-    reportIndex,
-    historyView: history.map((item, index) => ({
-      id: item.id || `history-${index}`,
-      round: item.round || index + 1,
-      lines: Array.isArray(item.lines) ? item.lines : []
-    }))
-  }
 }
 
 Page({
   data: {
+    code: '',
+    connected: false,
+    needHostLogin: false,
+    loggedIn: false,
+    status: 'waiting',
+    roundNo: 0,
+    roundStatus: '',
+    settleError: '',
+    seats: [],
+    online: [],
+    onlineOpen: false,
+    you: { guest: true, host: false, seat: '', submitted: false, userId: 0 },
+    history: [],
+    showForm: false,
+    draft: createEmptyReport(),
     outcomes: OUTCOMES,
+    opponents: [],
+    dianOpponentId: '',
+    dianRows: [],
+    jiaoMode: 'toggle',
+    needOpponent: false,
+    opponentTitle: '对手',
     scoreRule: SCORE,
-    ...initialState(),
-    ...buildView(initialState())
+    flying: [],
+    danmakuText: '',
+    danmakuWait: 0
   },
 
-  onLoad() {
-    this.ready = false
+  onLoad(options) {
+    this.pendingRoom = options.room || ''
+    this.roundKey = ''
+    this.flyId = 0
+    wx.showShareMenu({ menus: ['shareAppMessage'] })
+    this.boot()
+  },
 
-    try {
-      this.restore()
-    } catch (error) {
-      this.ready = true
+  onShow() {
+    if (this.data.code && !this.sock) {
+      this.openSocket(this.data.code)
     }
-  },
-
-  onHide() {
-    this.persist()
   },
 
   onUnload() {
-    this.persist()
+    this.closeSocket()
+    if (this.danmakuTimer) {
+      clearInterval(this.danmakuTimer)
+    }
   },
 
-  current() {
-    if (!this.snapshot) {
-      return this.data
+  onShareAppMessage() {
+    if (!this.data.code) {
+      return { title: '捉鸡记账本', path: '/pages/home/home' }
     }
-
     return {
-      ...this.data,
-      phase: this.snapshot.phase,
-      seats: this.snapshot.seats,
-      players: this.snapshot.players,
-      round: this.snapshot.round,
-      reportIndex: this.snapshot.reportIndex,
-      drafts: this.snapshot.drafts,
-      history: this.snapshot.history
+      title: '来一起捉鸡',
+      path: '/pages/multi/multi?room=' + this.data.code
     }
   },
 
-  commit(partial, callback) {
-    const base = this.current()
-    const next = {
-      phase: base.phase,
-      seats: base.seats,
-      players: base.players,
-      round: base.round,
-      reportIndex: base.reportIndex,
-      drafts: base.drafts,
-      history: base.history,
-      dianOpponentId: this.data.dianOpponentId,
-      ...partial
+  boot() {
+    const loggedIn = auth.isLoggedIn()
+    this.setData({ loggedIn })
+    const open = (code) => {
+      auth.ensureGuest().catch(() => {}).finally(() => this.openSocket(code))
     }
-    const view = buildView(next)
-
-    this.remember(next, view)
-    this.setData(
-      {
-        ...partial,
-        ...view
-      },
-      callback
-    )
-  },
-
-  remember(state, view) {
-    this.snapshot = {
-      phase: state.phase,
-      seats: state.seats,
-      players: state.players,
-      round: state.round,
-      reportIndex: view && view.reportIndex !== undefined ? view.reportIndex : state.reportIndex,
-      drafts: state.drafts,
-      history: state.history
-    }
-  },
-
-  persist() {
-    if (!this.ready) {
+    if (this.pendingRoom) {
+      open(this.pendingRoom)
       return
     }
-
-    const source = this.snapshot || this.data
-
-    wx.setStorageSync(STORAGE_KEY, {
-      phase: source.phase,
-      seats: source.seats,
-      players: source.players,
-      round: source.round,
-      reportIndex: source.reportIndex,
-      drafts: source.drafts,
-      history: source.history
+    if (!loggedIn) {
+      this.setData({ needHostLogin: true })
+      return
+    }
+    request({
+      url: '/api/v1/rooms',
+      method: 'POST',
+      token: auth.userToken(),
+      data: {}
+    }).then((body) => {
+      this.pendingRoom = body.code
+      open(body.code)
+    }).catch((err) => {
+      wx.showToast({ title: err.message || '开房失败', icon: 'none' })
     })
   },
 
-  restore() {
-    const saved = wx.getStorageSync(STORAGE_KEY)
-
-    if (!saved || typeof saved !== 'object') {
-      this.ready = true
+  openSocket(code) {
+    this.closeSocket()
+    const token = auth.playerToken()
+    if (!token) {
+      wx.showToast({ title: '网络不可用', icon: 'none' })
       return
     }
-
-    const seats = restoreSeats(saved.seats)
-
-    if (Array.isArray(saved.players)) {
-      saved.players.forEach((player) => {
-        const seat = player && seats.find((item) => item.key === player.id)
-
-        if (seat && !seat.name && player.name) {
-          seat.name = Array.from(String(player.name).trim()).slice(0, 8).join('')
+    const current = roomSocket.connect(code, token, {
+      onState: (room) => this.applyRoom(room),
+      onDanmaku: (message) => this.pushDanmaku(message),
+      onError: (message) => wx.showToast({ title: message, icon: 'none' }),
+      onClose: () => {
+        if (this.sock === current) {
+          this.sock = null
+          this.setData({ connected: false })
         }
-      })
-    }
-
-    let players = []
-
-    if (Array.isArray(saved.players)) {
-      players = seats
-        .filter((seat) => saved.players.some((player) => player && player.id === seat.key))
-        .map((seat) => {
-          const found = saved.players.find((player) => player && player.id === seat.key)
-          const score = Number(found.score)
-
-          return {
-            id: seat.key,
-            seat: seat.key,
-            name: seat.name || found.name || seat.label,
-            score: Number.isFinite(score) ? score : 0
-          }
-        })
-        .filter((player) => player.name)
-    }
-
-    let phase = saved.phase === 'report' || saved.phase === 'board' ? saved.phase : 'seat'
-
-    if (players.length < 2) {
-      phase = 'seat'
-      players = []
-    }
-
-    if (phase === 'seat') {
-      players = []
-    }
-
-    const drafts = {}
-
-    if (phase === 'report') {
-      players.forEach((player) => {
-        drafts[player.id] = normalizeReport(saved.drafts && saved.drafts[player.id])
-      })
-    }
-
-    let reportIndex = Number(saved.reportIndex) || 0
-
-    if (reportIndex < 0 || reportIndex >= players.length) {
-      reportIndex = 0
-    }
-
-    const partial = {
-      phase,
-      seats,
-      players,
-      round: Math.max(1, Number(saved.round) || 1),
-      reportIndex,
-      drafts,
-      history: Array.isArray(saved.history) ? saved.history : []
-    }
-    const view = buildView({
-      ...partial,
-      dianOpponentId: this.data.dianOpponentId
+      }
     })
-
-    this.remember(partial, view)
-    this.ready = true
-    this.setData({
-      ...partial,
-      ...view
-    })
+    this.sock = current
+    this.setData({ code, connected: true, needHostLogin: false })
   },
 
-  alert(message) {
-    wx.showModal({
-      title: '请核对',
-      content: message,
-      showCancel: false
+  closeSocket() {
+    if (this.sock) {
+      this.sock.close()
+      this.sock = null
+    }
+  },
+
+  applyRoom(room) {
+    const you = room.you || {}
+    const roundKey = (room.roundNo || 0) + ':' + (room.roundStatus || '')
+    const seats = (room.seats || []).map((seat) => {
+      const score = Number(seat.score) || 0
+      return {
+        key: seat.key,
+        label: seat.label,
+        empty: !!seat.empty,
+        userId: seat.userId ? String(seat.userId) : '',
+        nickname: seat.nickname || '',
+        avatarUrl: seat.avatarUrl || '',
+        score,
+        scoreText: seat.empty ? '' : signed(score),
+        tone: seat.empty ? '' : toneOf(score),
+        initial: seat.nickname ? Array.from(seat.nickname)[0] : seat.label,
+        nameText: seat.empty ? (auth.isLoggedIn() && room.status === 'waiting' ? '入座' : '空位') : seat.nickname,
+        mine: !seat.empty && String(seat.userId) === String(you.userId),
+        submitted: !!seat.submitted
+      }
     })
+    const opponents = seats.filter((seat) => !seat.empty && !seat.mine).map((seat) => ({
+      id: seat.userId,
+      title: seat.label + ' ' + seat.nickname
+    }))
+    const showForm = room.status === 'playing' && room.roundStatus === 'reporting' && !!you.seat && !you.guest
+    const patch = {
+      code: room.code,
+      status: room.status,
+      roundNo: room.roundNo || 0,
+      roundStatus: room.roundStatus || '',
+      settleError: room.settleError || '',
+      seats,
+      online: room.online || [],
+      you,
+      history: (room.history || []).slice().reverse(),
+      opponents,
+      showForm,
+      loggedIn: auth.isLoggedIn(),
+      connected: true
+    }
+    if (roundKey !== this.roundKey) {
+      this.roundKey = roundKey
+      patch.draft = createEmptyReport()
+      patch.dianOpponentId = ''
+      patch.dianRows = []
+      patch.jiaoMode = 'toggle'
+      patch.needOpponent = false
+      patch.opponentTitle = '对手'
+    }
+    this.setData(patch)
+  },
+
+  send(payload) {
+    if (!this.sock) {
+      wx.showToast({ title: '还没连上房间', icon: 'none' })
+      return false
+    }
+    this.sock.send(payload)
+    return true
   },
 
   onSeatTap(event) {
-    const { key } = event.currentTarget.dataset
-    const seat = this.current().seats.find((item) => item.key === key)
-
-    if (!seat || this.current().phase !== 'seat') {
-      return
-    }
-
-    if (!seat.name) {
-      this.promptName(key)
-      return
-    }
-
-    wx.showActionSheet({
-      itemList: ['改名', '离座'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          this.promptName(key)
-        }
-
-        if (res.tapIndex === 1) {
-          this.clearSeat(key)
-        }
-      }
-    })
-  },
-
-  promptName(key) {
-    const seat = this.current().seats.find((item) => item.key === key)
-
+    const key = event.currentTarget.dataset.key
+    const seat = (this.data.seats || []).find((item) => item.key === key)
     if (!seat) {
       return
     }
-
-    wx.showModal({
-      title: seat.name ? '修改名称' : '入座',
-      editable: true,
-      placeholderText: '请输入昵称',
-      content: seat.name || '',
-      confirmText: '确认',
-      cancelText: '取消',
-      success: (res) => {
-        if (!res.confirm) {
-          return
-        }
-
-        const chars = Array.from((res.content || '').trim())
-
-        if (!chars.length) {
-          wx.showToast({ title: '名称不能为空', icon: 'none' })
-          this.promptName(key)
-          return
-        }
-
-        if (chars.length > 8) {
-          wx.showToast({ title: '最多8个字', icon: 'none' })
-          this.promptName(key)
-          return
-        }
-
-        const name = chars.join('')
-        const seats = this.current().seats.map((item) => (item.key === key ? { ...item, name } : item))
-        const players = this.current().players.map((player) => (player.id === key ? { ...player, name } : player))
-
-        this.commit({ seats, players }, () => this.persist())
-      }
-    })
-  },
-
-  clearSeat(key) {
-    if (this.current().phase !== 'seat') {
-      this.alert('对局中不能离座，请先重新开局')
+    if (this.data.status !== 'waiting') {
       return
     }
-
-    const seats = this.current().seats.map((item) => (item.key === key ? { ...item, name: '' } : item))
-    this.commit({ seats }, () => this.persist())
-  },
-
-  renameCurrent() {
-    const player = this.current().players[this.current().reportIndex]
-
-    if (!player) {
+    if (!auth.isLoggedIn()) {
+      wx.showToast({ title: '登录后才能入座', icon: 'none' })
       return
     }
-
-    this.promptName(player.id)
+    if (seat.mine) {
+      wx.showModal({
+        title: '离开座位',
+        content: '确定离开' + seat.label + '家吗？',
+        success: (res) => {
+          if (res.confirm) {
+            this.send({ type: 'unsit' })
+          }
+        }
+      })
+      return
+    }
+    if (!seat.empty) {
+      wx.showToast({ title: '这个位子有人了', icon: 'none' })
+      return
+    }
+    this.send({ type: 'sit', seat: key })
   },
 
   startGame() {
-    const seated = this.current().seats.filter((seat) => seat.name)
+    this.send({ type: 'start' })
+  },
 
-    if (seated.length < 2) {
-      wx.showToast({ title: '至少两人入座', icon: 'none' })
-      return
-    }
+  nextRound() {
+    this.send({ type: 'next' })
+  },
 
-    const players = seated.map((seat) => ({
-      id: seat.key,
-      seat: seat.key,
-      name: seat.name,
-      score: 0
-    }))
-    const drafts = {}
-
-    players.forEach((player) => {
-      drafts[player.id] = createEmptyReport()
+  endMatch() {
+    wx.showModal({
+      title: '结束牌局',
+      content: '结束后会计入统计，不能再申报。',
+      confirmText: '结束',
+      confirmColor: '#d64545',
+      success: (res) => {
+        if (res.confirm) {
+          this.send({ type: 'end' })
+        }
+      }
     })
+  },
 
-    this.commit(
-      {
-        phase: 'report',
-        players,
-        drafts,
-        round: 1,
-        reportIndex: 0,
-        history: []
-      },
-      () => this.persist()
-    )
+  goLogin() {
+    wx.switchTab({ url: '/pages/mine/mine' })
+  },
+
+  toggleOnline() {
+    this.setData({ onlineOpen: !this.data.onlineOpen })
   },
 
   patchDraft(mutator) {
-    const player = this.current().players[this.current().reportIndex]
-
-    if (!player) {
-      return
-    }
-
-    const draft = normalizeReport(this.current().drafts[player.id])
+    const draft = normalizeReport(this.data.draft)
     mutator(draft)
-
-    this.commit(
-      {
-        drafts: {
-          ...this.current().drafts,
-          [player.id]: normalizeReport(draft)
-        }
-      },
-      () => this.persist()
-    )
+    const next = normalizeReport(draft)
+    const rows = (next.dianDou || []).map((item, index) => {
+      const opponent = (this.data.opponents || []).find((seat) => seat.id === String(item.opponentId))
+      const name = opponent ? opponent.title : '对手'
+      return {
+        index,
+        text: item.direction === 'gang' ? '杠了 ' + name : '被 ' + name + ' 杠'
+      }
+    })
+    this.setData({
+      draft: next,
+      dianRows: rows,
+      jiaoMode: jiaoMode(next.outcome),
+      needOpponent: next.outcome === 'jiepao' || next.outcome === 'fangpao',
+      opponentTitle: next.outcome === 'jiepao' ? '谁放的炮' : '谁接的炮'
+    })
   },
 
   onOutcome(event) {
-    const { key } = event.currentTarget.dataset
-
+    const key = event.currentTarget.dataset.key
     this.patchDraft((draft) => {
       draft.outcome = key
-
       if (key === 'fangpao') {
         draft.hasJiao = false
       }
-
       if (key === 'zouju') {
         draft.hasJiao = true
       }
-
       if (key !== 'jiepao' && key !== 'fangpao') {
         draft.opponentId = ''
       }
@@ -522,8 +306,7 @@ Page({
   },
 
   onOpponent(event) {
-    const { id } = event.currentTarget.dataset
-
+    const id = String(event.currentTarget.dataset.id)
     this.patchDraft((draft) => {
       draft.opponentId = id
     })
@@ -533,48 +316,42 @@ Page({
     if (this.data.jiaoMode !== 'toggle') {
       return
     }
-
     this.patchDraft((draft) => {
       draft.hasJiao = !draft.hasJiao
     })
   },
 
   onStep(event) {
-    const { field, delta } = event.currentTarget.dataset
+    const field = event.currentTarget.dataset.field
+    const delta = Number(event.currentTarget.dataset.delta)
     const max = LIMITS[field] || 0
-    const step = Number(delta)
-
     this.patchDraft((draft) => {
-      draft[field] = Math.max(0, Math.min(max, (Number(draft[field]) || 0) + step))
+      draft[field] = Math.max(0, Math.min(max, (Number(draft[field]) || 0) + delta))
     })
   },
 
   onFlag(event) {
-    const { field } = event.currentTarget.dataset
-
+    const field = event.currentTarget.dataset.field
     this.patchDraft((draft) => {
       draft[field] = !draft[field]
     })
   },
 
   onPickDian(event) {
-    this.commit({ dianOpponentId: event.currentTarget.dataset.id })
+    this.setData({ dianOpponentId: String(event.currentTarget.dataset.id) })
   },
 
   onAddDian(event) {
     const direction = event.currentTarget.dataset.direction
     const opponentId = this.data.dianOpponentId
-
     if (!opponentId) {
       wx.showToast({ title: '请选择对象', icon: 'none' })
       return
     }
-
     if ((this.data.draft.dianDou || []).length >= LIMITS.dianDou) {
       wx.showToast({ title: '点豆已达上限', icon: 'none' })
       return
     }
-
     this.patchDraft((draft) => {
       draft.dianDou.push({ opponentId, direction })
     })
@@ -582,175 +359,59 @@ Page({
 
   onRemoveDian(event) {
     const index = Number(event.currentTarget.dataset.index)
-
     this.patchDraft((draft) => {
       draft.dianDou = draft.dianDou.filter((_, itemIndex) => itemIndex !== index)
     })
   },
 
-  onProgressTap(event) {
-    const index = Number(event.currentTarget.dataset.index)
-
-    if (index > this.current().reportIndex) {
-      wx.showToast({ title: '请按顺序填写', icon: 'none' })
+  submitReport() {
+    const draft = normalizeReport(this.data.draft)
+    if ((draft.outcome === 'jiepao' || draft.outcome === 'fangpao') && !draft.opponentId) {
+      wx.showToast({ title: '请选择对手', icon: 'none' })
       return
     }
-
-    this.commit({ reportIndex: index }, () => this.persist())
+    this.send({ type: 'report', report: draft })
   },
 
-  onPrev() {
-    if (this.current().reportIndex <= 0) {
-      wx.showToast({ title: '已经是第一位', icon: 'none' })
-      return
-    }
-
-    this.commit({ reportIndex: this.current().reportIndex - 1 }, () => this.persist())
+  onDanmakuInput(event) {
+    this.setData({ danmakuText: event.detail.value })
   },
 
-  onNext() {
-    const player = this.current().players[this.current().reportIndex]
-    const message = validateReport(player, this.current().drafts[player.id], this.current().players)
-
-    if (message) {
-      this.alert(message)
+  sendDanmaku() {
+    if (this.data.danmakuWait > 0) {
+      wx.showToast({ title: this.data.danmakuWait + ' 秒后可再发', icon: 'none' })
       return
     }
-
-    if (this.current().reportIndex < this.current().players.length - 1) {
-      this.commit({ reportIndex: this.current().reportIndex + 1 }, () => this.persist())
+    const text = (this.data.danmakuText || '').trim()
+    if (!text) {
       return
     }
-
-    this.settle()
-  },
-
-  settle() {
-    if (this.settling) {
+    if (!this.send({ type: 'danmaku', text })) {
       return
     }
-
-    this.settling = true
-    const result = settleRound(this.current().players, this.current().drafts)
-
-    if (!result.ok) {
-      this.settling = false
-      this.alert(result.message)
-      return
+    this.setData({ danmakuText: '', danmakuWait: 10 })
+    if (this.danmakuTimer) {
+      clearInterval(this.danmakuTimer)
     }
-
-    const currentRound = this.current().round
-    const players = this.current().players.map((player) => ({
-      ...player,
-      score: player.score + result.deltas[player.id]
-    }))
-    const history = [
-      {
-        id: `${currentRound}-${Date.now()}`,
-        round: currentRound,
-        lines: result.lines,
-        deltas: this.current().players.map((player) => ({
-          id: player.id,
-          delta: result.deltas[player.id]
-        }))
-      },
-      ...this.current().history
-    ]
-
-    this.commit(
-      {
-        phase: 'board',
-        players,
-        history,
-        round: currentRound + 1,
-        drafts: {}
-      },
-      () => {
-        this.settling = false
-        this.persist()
+    this.danmakuTimer = setInterval(() => {
+      const next = this.data.danmakuWait - 1
+      this.setData({ danmakuWait: next })
+      if (next <= 0) {
+        clearInterval(this.danmakuTimer)
       }
-    )
+    }, 1000)
   },
 
-  nextRound() {
-    const drafts = {}
-
-    this.current().players.forEach((player) => {
-      drafts[player.id] = createEmptyReport()
-    })
-
-    this.commit(
-      {
-        phase: 'report',
-        reportIndex: 0,
-        drafts
-      },
-      () => this.persist()
-    )
-  },
-
-  undoLast() {
-    const latest = this.current().history[0]
-
-    if (!latest) {
-      return
+  pushDanmaku(message) {
+    const id = ++this.flyId
+    const item = {
+      id,
+      top: 16 + (id % 4) * 36,
+      text: (message.nickname || '游客') + '：' + message.content
     }
-
-    wx.showModal({
-      title: '撤回上一局',
-      content: '确定撤回上一局结算吗？',
-      confirmText: '撤回',
-      confirmColor: '#d64545',
-      success: (res) => {
-        if (!res.confirm) {
-          return
-        }
-
-        const players = this.current().players.map((player) => {
-          const change = (latest.deltas || []).find((item) => item.id === player.id)
-
-          return {
-            ...player,
-            score: player.score - (change ? Number(change.delta) || 0 : 0)
-          }
-        })
-
-        this.commit(
-          {
-            players,
-            history: this.current().history.slice(1),
-            round: Math.max(1, this.current().round - 1),
-            phase: 'board'
-          },
-          () => this.persist()
-        )
-      }
-    })
-  },
-
-  resetGame() {
-    wx.showModal({
-      title: '重新开局',
-      content: '确定清空分数和历史，保留当前座位昵称吗？',
-      confirmText: '重新开局',
-      confirmColor: '#d64545',
-      success: (res) => {
-        if (!res.confirm) {
-          return
-        }
-
-        this.commit(
-          {
-            phase: 'seat',
-            players: [],
-            round: 1,
-            reportIndex: 0,
-            drafts: {},
-            history: []
-          },
-          () => this.persist()
-        )
-      }
-    })
+    this.setData({ flying: this.data.flying.concat(item) })
+    setTimeout(() => {
+      this.setData({ flying: (this.data.flying || []).filter((fly) => fly.id !== id) })
+    }, 6000)
   }
 })

@@ -9,6 +9,10 @@
       { "type": "glob", "value": "temp_zuma/**" },
       { "type": "glob", "value": "temp_kr/**" },
       { "type": "folder", "value": "docs" },
+      { "type": "folder", "value": "server" },
+      { "type": "folder", "value": "admin" },
+      { "type": "glob", "value": "server/**" },
+      { "type": "glob", "value": "admin/**" },
       { "type": "folder", "value": ".idea" },
       { "type": "folder", "value": ".git" }
     ],

@@ -445,6 +445,14 @@ Page({
   },
 
   handleLevelWon() {
+    const report = require('../../utils/minigame-report.js');
+    report.report({
+      game: 'zuma',
+      result: 'win',
+      score: this.game ? this.game.score : 0,
+      levelNo: this.game ? this.game.stageIdx + 1 : 0,
+      stars: 0
+    });
     this.showToast('🎉 过关！');
     setTimeout(() => {
       if (this.game) {
@@ -479,6 +487,14 @@ Page({
   },
 
   handleGameOver() {
+    const report = require('../../utils/minigame-report.js');
+    report.report({
+      game: 'zuma',
+      result: 'lose',
+      score: this.game ? this.game.score : 0,
+      levelNo: this.game ? this.game.stageIdx + 1 : 0,
+      stars: 0
+    });
     const isNew = this.game.score > this.data.highScore;
     if (isNew) {
       wx.setStorageSync(HIGH_SCORE_KEY, this.game.score);

@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS minigame_records;
+DROP TABLE IF EXISTS danmaku;
+DROP TABLE IF EXISTS round_deltas;
+DROP TABLE IF EXISTS round_reports;
+DROP TABLE IF EXISTS rounds;
+DROP TABLE IF EXISTS match_seats;
+DROP TABLE IF EXISTS matches;
+DROP TABLE IF EXISTS admins;
+DROP TABLE IF EXISTS users;

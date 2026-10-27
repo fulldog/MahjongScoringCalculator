@@ -1,1 +1,4 @@
 .idea
+admin/node_modules
+admin/dist
+logs/
