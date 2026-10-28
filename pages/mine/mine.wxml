@@ -1,12 +1,32 @@
 <view class="page">
-  <block wx:if="{{loggedIn && user}}">
-    <view class="card">
-      <image wx:if="{{user.avatarUrl}}" class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="avatar">{{user.initial || '我'}}</view>
-      <view class="name">{{user.nickname || '微信用户'}}</view>
-      <view class="meta">微信授权已登录</view>
-    </view>
-    <view class="logout" bindtap="logout">退出登录</view>
-  </block>
-  <auth-panel wx:else bind:success="onLogin"></auth-panel>
+  <view class="shell">
+    <block wx:if="{{loggedIn && user}}">
+      <view class="profile">
+        <view class="ring">
+          <image wx:if="{{user.avatarUrl}}" class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="avatar">{{user.initial || '我'}}</view>
+        </view>
+        <view class="name">{{user.nickname || '微信用户'}}</view>
+        <view class="status">已登录</view>
+      </view>
+      <view class="rows">
+        <view class="row">
+          <view class="row-mark"></view>
+          <view>
+            <view class="row-title">统计</view>
+            <view class="row-desc">近一个月的胜负和对局人</view>
+          </view>
+        </view>
+        <view class="row">
+          <view class="row-mark"></view>
+          <view>
+            <view class="row-title">牌桌</view>
+            <view class="row-desc">用这个身份入座多人房间</view>
+          </view>
+        </view>
+      </view>
+      <view class="logout" bindtap="logout">退出登录</view>
+    </block>
+    <auth-panel wx:else bind:success="onLogin"></auth-panel>
+  </view>
 </view>

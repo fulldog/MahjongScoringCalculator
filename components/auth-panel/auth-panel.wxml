@@ -1,9 +1,30 @@
 <view class="panel">
-  <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-    <image wx:if="{{avatarUrl}}" class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
-    <view wx:else class="avatar placeholder">头像</view>
-  </button>
-  <input class="name" type="nickname" placeholder="填写昵称" placeholder-class="ph" value="{{nickname}}" bindinput="onName" />
-  <view class="login {{busy ? 'is-busy' : ''}}" bindtap="submit">{{busy ? '登录中' : '微信授权登录'}}</view>
-  <view class="note">不登录也可以玩单人记账和小游戏。统计、我的和多人入座需要登录。</view>
+  <view class="head">
+    <view class="mark">黔</view>
+    <view class="head-copy">
+      <view class="title">记下你的牌局</view>
+      <view class="subtitle">统计和多人入座都用这个身份</view>
+    </view>
+  </view>
+
+  <view class="sheet">
+    <view class="avatar-stage">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarUrl}}" class="photo" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="photo empty">
+          <view class="glyph-head"></view>
+          <view class="glyph-body"></view>
+        </view>
+      </button>
+      <view class="hint">轻点选择头像</view>
+    </view>
+
+    <view class="field">
+      <view class="label">昵称</view>
+      <input class="name" type="nickname" placeholder="牌桌上怎么叫你" placeholder-class="ph" value="{{nickname}}" bindinput="onName" />
+    </view>
+
+    <view class="login {{busy ? 'is-busy' : ''}}" bindtap="submit">{{busy ? '登录中' : '微信授权登录'}}</view>
+    <view class="note">不登录也可以玩单人记账和小游戏</view>
+  </view>
 </view>
